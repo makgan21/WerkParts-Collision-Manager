@@ -1,10 +1,11 @@
-# [Project name]
+# WerkParts - Collision Fastener Manager
 
-_Replace the heading above with the project's name, and this line with one sentence describing what this app does for users._
+A web app for collision repair shops to invoice fasteners (clips, retainers, nuts, bolts) from on-hand stock and bill customers or insurance companies.
 
 ## Run & Operate
 
-- `pnpm --filter @workspace/api-server run dev` — run the API server (port 5000)
+- `pnpm --filter @workspace/werkparts run dev` — run the frontend (port assigned by artifact)
+- `pnpm --filter @workspace/api-server run dev` — run the API server (port 8080)
 - `pnpm run typecheck` — full typecheck across all packages
 - `pnpm run build` — typecheck + build all packages
 - `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from the OpenAPI spec
@@ -14,31 +15,50 @@ _Replace the heading above with the project's name, and this line with one sente
 ## Stack
 
 - pnpm workspaces, Node.js 24, TypeScript 5.9
-- API: Express 5
+- Frontend: React + Vite (artifacts/werkparts)
+- API: Express 5 (artifacts/api-server)
 - DB: PostgreSQL + Drizzle ORM
-- Validation: Zod (`zod/v4`), `drizzle-zod`
-- API codegen: Orval (from OpenAPI spec)
+- Validation: Zod (v3), drizzle-zod
+- API codegen: Orval (from OpenAPI spec in lib/api-spec/openapi.yaml)
 - Build: esbuild (CJS bundle)
 
 ## Where things live
 
-_Populate as you build — short repo map plus pointers to the source-of-truth file for DB schema, API contracts, theme files, etc._
+- `lib/api-spec/openapi.yaml` — single source of truth for all API contracts
+- `lib/db/src/schema/` — Drizzle table definitions (suppliers, parts, invoices, invoiceItems)
+- `artifacts/api-server/src/routes/` — Express route handlers (parts, suppliers, invoices, dashboard)
+- `artifacts/werkparts/src/` — React frontend (pages, components)
+- `lib/api-client-react/src/generated/` — generated React Query hooks (do not edit by hand)
+- `lib/api-zod/src/generated/` — generated Zod validation schemas (do not edit by hand)
 
 ## Architecture decisions
 
-_Populate as you build — non-obvious choices a reader couldn't infer from the code (3-5 bullets)._
+- All `type: integer` fields in openapi.yaml must use `type: number` — Orval 8.x generates `zod.int()` (Zod v4 syntax) for integers, but the workspace uses Zod v3. Using `type: number` generates the correct `zod.number()`.
+- Invoice numbers are auto-generated server-side in format `WP-YYMM-NNNN`
+- Invoice items cascade-delete when an invoice is deleted
+- Creating an invoice decrements parts stock quantities automatically
+- All money values are stored/returned as decimal strings (not floats) to avoid floating-point errors
 
 ## Product
 
-_Describe the high-level user-facing capabilities of this app once they exist._
+- **Dashboard** — recent invoices, revenue stats, parts-by-category breakdown
+- **Invoices** — create, view, edit, delete invoices; each invoice has RO number, date, tech, vehicle info, insurance company, and line items with part number, qty, unit price, total; prints cleanly with "OEM Authorized Price" label
+- **Parts Catalog** — manage on-hand fastener inventory (clips, retainers, nuts, bolts) with part numbers, pricing, and stock quantities
+- **Suppliers** — manage fastener supplier contact information
 
 ## User preferences
 
-_Populate as you build — explicit user instructions worth remembering across sessions._
+- Single shop / personal use
+- Invoice must display "OEM Authorized Price" below the parts list
+- Invoice fields: RO number, invoice number, date, tech, year/make/model, insurance company
+- Line item fields: part number, quantity, price, description, total price
+- Track sales of clips, retainers, nuts and bolts
 
 ## Gotchas
 
-_Populate as you build — sharp edges, "always run X before Y" rules._
+- After changing openapi.yaml, always run `pnpm --filter @workspace/api-spec run codegen` before touching any frontend or backend code
+- Do NOT use `type: integer` in openapi.yaml — use `type: number` (see Architecture decisions)
+- Run `pnpm --filter @workspace/db run push` after any schema change in `lib/db/src/schema/`
 
 ## Pointers
 

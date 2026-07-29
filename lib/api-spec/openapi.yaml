@@ -3,13 +3,22 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: WerkParts - Collision Fastener Manager API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: parts
+    description: Parts catalog
+  - name: suppliers
+    description: Supplier management
+  - name: invoices
+    description: Invoice management
+  - name: dashboard
+    description: Dashboard stats
+
 paths:
   /healthz:
     get:
@@ -24,6 +33,353 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /parts:
+    get:
+      operationId: listParts
+      tags: [parts]
+      summary: List all parts
+      parameters:
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: category
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of parts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Part"
+    post:
+      operationId: createPart
+      tags: [parts]
+      summary: Create a part
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PartInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Part"
+
+  /parts/{id}:
+    get:
+      operationId: getPart
+      tags: [parts]
+      summary: Get a part by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      responses:
+        "200":
+          description: Part found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Part"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    put:
+      operationId: updatePart
+      tags: [parts]
+      summary: Update a part
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PartUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Part"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      operationId: deletePart
+      tags: [parts]
+      summary: Delete a part
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      responses:
+        "204":
+          description: Deleted
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /suppliers:
+    get:
+      operationId: listSuppliers
+      tags: [suppliers]
+      summary: List all suppliers
+      responses:
+        "200":
+          description: List of suppliers
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Supplier"
+    post:
+      operationId: createSupplier
+      tags: [suppliers]
+      summary: Create a supplier
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SupplierInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Supplier"
+
+  /suppliers/{id}:
+    get:
+      operationId: getSupplier
+      tags: [suppliers]
+      summary: Get a supplier by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      responses:
+        "200":
+          description: Supplier found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Supplier"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    put:
+      operationId: updateSupplier
+      tags: [suppliers]
+      summary: Update a supplier
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SupplierUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Supplier"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      operationId: deleteSupplier
+      tags: [suppliers]
+      summary: Delete a supplier
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      responses:
+        "204":
+          description: Deleted
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /invoices:
+    get:
+      operationId: listInvoices
+      tags: [invoices]
+      summary: List all invoices
+      parameters:
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: status
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of invoices
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Invoice"
+    post:
+      operationId: createInvoice
+      tags: [invoices]
+      summary: Create an invoice
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InvoiceInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Invoice"
+
+  /invoices/{id}:
+    get:
+      operationId: getInvoice
+      tags: [invoices]
+      summary: Get an invoice with line items
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      responses:
+        "200":
+          description: Invoice found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InvoiceDetail"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    put:
+      operationId: updateInvoice
+      tags: [invoices]
+      summary: Update an invoice
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InvoiceUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InvoiceDetail"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      operationId: deleteInvoice
+      tags: [invoices]
+      summary: Delete an invoice
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      responses:
+        "204":
+          description: Deleted
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /dashboard:
+    get:
+      operationId: getDashboard
+      tags: [dashboard]
+      summary: Get dashboard statistics
+      responses:
+        "200":
+          description: Dashboard stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardStats"
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +390,302 @@ components:
       required:
         - status
 
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error
+
+    Part:
+      type: object
+      required: [id, partNumber, description, category, unitPrice, quantityInStock, createdAt]
+      properties:
+        id:
+          type: number
+        partNumber:
+          type: string
+        description:
+          type: string
+        category:
+          type: string
+          description: "clip | retainer | nut | bolt | other"
+        unitPrice:
+          type: string
+          description: Decimal price as string
+        quantityInStock:
+          type: number
+        supplierId:
+          type: ["number", "null"]
+        supplierName:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+
+    PartInput:
+      type: object
+      required: [partNumber, description, category, unitPrice, quantityInStock]
+      properties:
+        partNumber:
+          type: string
+        description:
+          type: string
+        category:
+          type: string
+        unitPrice:
+          type: string
+        quantityInStock:
+          type: number
+        supplierId:
+          type: ["number", "null"]
+
+    PartUpdate:
+      type: object
+      properties:
+        partNumber:
+          type: string
+        description:
+          type: string
+        category:
+          type: string
+        unitPrice:
+          type: string
+        quantityInStock:
+          type: number
+        supplierId:
+          type: ["number", "null"]
+
+    Supplier:
+      type: object
+      required: [id, name, createdAt]
+      properties:
+        id:
+          type: number
+        name:
+          type: string
+        contactName:
+          type: ["string", "null"]
+        phone:
+          type: ["string", "null"]
+        email:
+          type: ["string", "null"]
+        address:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+
+    SupplierInput:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+        contactName:
+          type: ["string", "null"]
+        phone:
+          type: ["string", "null"]
+        email:
+          type: ["string", "null"]
+        address:
+          type: ["string", "null"]
+
+    SupplierUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+        contactName:
+          type: ["string", "null"]
+        phone:
+          type: ["string", "null"]
+        email:
+          type: ["string", "null"]
+        address:
+          type: ["string", "null"]
+
+    InvoiceItem:
+      type: object
+      required: [id, invoiceId, partNumber, description, quantity, unitPrice, totalPrice]
+      properties:
+        id:
+          type: number
+        invoiceId:
+          type: number
+        partId:
+          type: ["number", "null"]
+        partNumber:
+          type: string
+        description:
+          type: string
+        quantity:
+          type: number
+        unitPrice:
+          type: string
+        totalPrice:
+          type: string
+
+    InvoiceItemInput:
+      type: object
+      required: [partNumber, description, quantity, unitPrice]
+      properties:
+        partId:
+          type: ["number", "null"]
+        partNumber:
+          type: string
+        description:
+          type: string
+        quantity:
+          type: number
+        unitPrice:
+          type: string
+
+    Invoice:
+      type: object
+      required: [id, invoiceNumber, roNumber, date, techName, vehicleYear, vehicleMake, vehicleModel, insuranceCompany, status, totalAmount, createdAt]
+      properties:
+        id:
+          type: number
+        invoiceNumber:
+          type: string
+        roNumber:
+          type: string
+        date:
+          type: string
+        techName:
+          type: string
+        vehicleYear:
+          type: string
+        vehicleMake:
+          type: string
+        vehicleModel:
+          type: string
+        insuranceCompany:
+          type: string
+        status:
+          type: string
+          description: "draft | finalized | paid"
+        totalAmount:
+          type: string
+        itemCount:
+          type: number
+        createdAt:
+          type: string
+
+    InvoiceDetail:
+      type: object
+      required: [id, invoiceNumber, roNumber, date, techName, vehicleYear, vehicleMake, vehicleModel, insuranceCompany, status, totalAmount, items, createdAt]
+      properties:
+        id:
+          type: number
+        invoiceNumber:
+          type: string
+        roNumber:
+          type: string
+        date:
+          type: string
+        techName:
+          type: string
+        vehicleYear:
+          type: string
+        vehicleMake:
+          type: string
+        vehicleModel:
+          type: string
+        insuranceCompany:
+          type: string
+        status:
+          type: string
+        totalAmount:
+          type: string
+        notes:
+          type: ["string", "null"]
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/InvoiceItem"
+        createdAt:
+          type: string
+
+    InvoiceInput:
+      type: object
+      required: [roNumber, date, techName, vehicleYear, vehicleMake, vehicleModel, insuranceCompany, items]
+      properties:
+        roNumber:
+          type: string
+        date:
+          type: string
+        techName:
+          type: string
+        vehicleYear:
+          type: string
+        vehicleMake:
+          type: string
+        vehicleModel:
+          type: string
+        insuranceCompany:
+          type: string
+        status:
+          type: string
+        notes:
+          type: ["string", "null"]
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/InvoiceItemInput"
+
+    InvoiceUpdate:
+      type: object
+      properties:
+        roNumber:
+          type: string
+        date:
+          type: string
+        techName:
+          type: string
+        vehicleYear:
+          type: string
+        vehicleMake:
+          type: string
+        vehicleModel:
+          type: string
+        insuranceCompany:
+          type: string
+        status:
+          type: string
+        notes:
+          type: ["string", "null"]
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/InvoiceItemInput"
+
+    DashboardStats:
+      type: object
+      required: [totalInvoices, totalRevenue, invoicesThisMonth, revenueThisMonth, recentInvoices, partsByCategory]
+      properties:
+        totalInvoices:
+          type: number
+        totalRevenue:
+          type: string
+        invoicesThisMonth:
+          type: number
+        revenueThisMonth:
+          type: string
+        recentInvoices:
+          type: array
+          items:
+            $ref: "#/components/schemas/Invoice"
+        partsByCategory:
+          type: array
+          items:
+            $ref: "#/components/schemas/CategoryCount"
+
+    CategoryCount:
+      type: object
+      required: [category, count]
+      properties:
+        category:
+          type: string
+        count:
+          type: number
