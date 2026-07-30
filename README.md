@@ -9,7 +9,6 @@ Unlike generic inventory software, WerkParts is built around the daily workflow 
 ## Features
 
 - Fast fastener invoicing
-- Auveco inventory management
 - OEM to Auveco cross-reference lookup
 - Automatic invoice generation
 - Technician tracking
@@ -19,7 +18,6 @@ Unlike generic inventory software, WerkParts is built around the daily workflow 
 - Windows desktop application
 - Barcode scanner support (planned)
 - Inventory reporting (planned)
-- Low inventory alerts (planned)
 
 ---
 
