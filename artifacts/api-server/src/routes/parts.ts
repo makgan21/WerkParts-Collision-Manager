@@ -1,5 +1,5 @@
 import { Router, type IRouter } from "express";
-import { eq, ilike, or } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { db, partsTable, suppliersTable } from "@workspace/db";
 import {
   CreatePartBody,
@@ -11,6 +11,16 @@ import {
 } from "@workspace/api-zod";
 
 const router: IRouter = Router();
+
+function formatPart(r: typeof partsTable.$inferSelect & { supplierName?: string | null }) {
+  return {
+    ...r,
+    unitPrice: r.unitPrice?.toString() ?? "0",
+    msrpPrice: r.msrpPrice?.toString() ?? null,
+    ourCost: r.ourCost?.toString() ?? null,
+    createdAt: r.createdAt.toISOString(),
+  };
+}
 
 router.get("/parts", async (req, res): Promise<void> => {
   const query = ListPartsQueryParams.safeParse(req.query);
@@ -26,6 +36,8 @@ router.get("/parts", async (req, res): Promise<void> => {
       description: partsTable.description,
       category: partsTable.category,
       unitPrice: partsTable.unitPrice,
+      msrpPrice: partsTable.msrpPrice,
+      ourCost: partsTable.ourCost,
       quantityInStock: partsTable.quantityInStock,
       supplierId: partsTable.supplierId,
       supplierName: suppliersTable.name,
@@ -48,13 +60,7 @@ router.get("/parts", async (req, res): Promise<void> => {
     rows = rows.filter((r) => r.category === query.data.category);
   }
 
-  res.json(
-    rows.map((r) => ({
-      ...r,
-      unitPrice: r.unitPrice?.toString() ?? "0",
-      createdAt: r.createdAt.toISOString(),
-    })),
-  );
+  res.json(rows.map(formatPart));
 });
 
 router.post("/parts", async (req, res): Promise<void> => {
@@ -71,7 +77,9 @@ router.post("/parts", async (req, res): Promise<void> => {
       description: parsed.data.description,
       category: parsed.data.category,
       unitPrice: parsed.data.unitPrice,
-      quantityInStock: parsed.data.quantityInStock,
+      msrpPrice: parsed.data.msrpPrice ?? null,
+      ourCost: parsed.data.ourCost ?? null,
+      quantityInStock: 0,
       supplierId: parsed.data.supplierId ?? null,
     })
     .returning();
@@ -84,12 +92,7 @@ router.post("/parts", async (req, res): Promise<void> => {
         .then((r) => r[0])
     : null;
 
-  res.status(201).json({
-    ...part,
-    unitPrice: part.unitPrice?.toString() ?? "0",
-    supplierName: supplier?.name ?? null,
-    createdAt: part.createdAt.toISOString(),
-  });
+  res.status(201).json(formatPart({ ...part, supplierName: supplier?.name ?? null }));
 });
 
 router.get("/parts/:id", async (req, res): Promise<void> => {
@@ -106,6 +109,8 @@ router.get("/parts/:id", async (req, res): Promise<void> => {
       description: partsTable.description,
       category: partsTable.category,
       unitPrice: partsTable.unitPrice,
+      msrpPrice: partsTable.msrpPrice,
+      ourCost: partsTable.ourCost,
       quantityInStock: partsTable.quantityInStock,
       supplierId: partsTable.supplierId,
       supplierName: suppliersTable.name,
@@ -120,11 +125,7 @@ router.get("/parts/:id", async (req, res): Promise<void> => {
     return;
   }
 
-  res.json({
-    ...row,
-    unitPrice: row.unitPrice?.toString() ?? "0",
-    createdAt: row.createdAt.toISOString(),
-  });
+  res.json(formatPart(row));
 });
 
 router.put("/parts/:id", async (req, res): Promise<void> => {
@@ -145,7 +146,8 @@ router.put("/parts/:id", async (req, res): Promise<void> => {
   if (parsed.data.description != null) updateData.description = parsed.data.description;
   if (parsed.data.category != null) updateData.category = parsed.data.category;
   if (parsed.data.unitPrice != null) updateData.unitPrice = parsed.data.unitPrice;
-  if (parsed.data.quantityInStock != null) updateData.quantityInStock = parsed.data.quantityInStock;
+  if ("msrpPrice" in parsed.data) updateData.msrpPrice = parsed.data.msrpPrice ?? null;
+  if ("ourCost" in parsed.data) updateData.ourCost = parsed.data.ourCost ?? null;
   if ("supplierId" in parsed.data) updateData.supplierId = parsed.data.supplierId ?? null;
 
   const [part] = await db
@@ -167,12 +169,7 @@ router.put("/parts/:id", async (req, res): Promise<void> => {
         .then((r) => r[0])
     : null;
 
-  res.json({
-    ...part,
-    unitPrice: part.unitPrice?.toString() ?? "0",
-    supplierName: supplier?.name ?? null,
-    createdAt: part.createdAt.toISOString(),
-  });
+  res.json(formatPart({ ...part, supplierName: supplier?.name ?? null }));
 });
 
 router.delete("/parts/:id", async (req, res): Promise<void> => {

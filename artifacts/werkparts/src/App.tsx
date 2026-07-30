@@ -1,7 +1,7 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'sonner';
 import NotFound from './pages/not-found';
-import { Route, Switch, Router as WouterRouter } from 'wouter';
+import { Route, Switch, Router as WouterRouter, Redirect } from 'wouter';
 import { Layout } from './components/layout';
 
 import Dashboard from './pages/dashboard';
@@ -10,6 +10,8 @@ import Suppliers from './pages/suppliers';
 import Invoices from './pages/invoices/index';
 import NewInvoice from './pages/invoices/new';
 import InvoiceDetail from './pages/invoices/detail';
+import Settings from './pages/settings';
+import Reports from './pages/reports';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -23,12 +25,15 @@ function Router() {
   return (
     <Layout>
       <Switch>
-        <Route path="/" component={Dashboard} />
+        <Route path="/"><Redirect to="/invoices/new" /></Route>
+        <Route path="/dashboard" component={Dashboard} />
         <Route path="/invoices" component={Invoices} />
         <Route path="/invoices/new" component={NewInvoice} />
         <Route path="/invoices/:id" component={InvoiceDetail} />
         <Route path="/parts" component={Parts} />
         <Route path="/suppliers" component={Suppliers} />
+        <Route path="/settings" component={Settings} />
+        <Route path="/reports" component={Reports} />
         <Route component={NotFound} />
       </Switch>
     </Layout>

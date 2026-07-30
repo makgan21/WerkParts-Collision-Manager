@@ -1,0 +1,13 @@
+Some things to change. Might have already mentioned before running out of credits.
+1. Need a Settings option on the sidebar. Either have it say settings or have a little gear icon that you can click on to get to settings. Put it in a corner where it's out of the way and not a eyesore. This should include the technician management and insurance management. We can also move the suppliers into settings.
+2. Can we make a couple of themes? Maybe a light and dark theme? I normally use a dark theme but having the option would be good. Put this in the settings.
+3. Invoices screen. I like the status (draft, paid, finalized) but to be honest. It's not useful for me. The invoice will be printed out and put into CCC and be billed from there.
+4. Can we make the Technician name and Insurance Company boxes dropdowns with prefilled options? Maybe do the same with the year, make and model.
+5. Sometimes the tech comes and gets clips and then goes back to the vehicle. It turns out to be wrong, and he comes back with the clips and swaps them out for something else. Can we add a void button to the invoices. I don't want that to delete it from my invoice list but it should show up as Voided. Maybe under the status instead of draft, paid, finalized. We can do Draft, Finalized, Voided.
+6. Suppliers. We really only use Auveco clips and fasteners. Don't really stock anything else. But having the ability to add suppliers is nice in case we do.
+7. Speaking of adding. When I click to add a part or supplier, the window opens low on the screen, and I can only see the top input box. Currently it is impossible to add anything. Need to keep it centered in the screen or maybe even closer to the top.
+8. Let's add a import function for the Parts Catalog. That way we can get a .csv file, for example, from our distributor. Import all the clips and fasteners with descriptions and prices at once.
+9. Having the current stock on parts is irrelevant for me. I don't have a current count on anything and I'm not going to count all of them. There are too many. So let's remove that from the parts screen.
+10. Assuming I can get it, having a msrp cost and our cost would be nice. It would also help with the Revenue numbers in the Dashboard.
+11. Add a Reports to the sidebar. We can put some reports in there later after we get the app up and running. But maybe we could have a Technician usage report and a profit report to start.
+12. For the sake of time saving. The app should always open at the invoice screen ready to create a new invoice. That is the main point of this, the rest is just quality of life stuff.

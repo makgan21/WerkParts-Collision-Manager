@@ -9,6 +9,8 @@ export const partsTable = pgTable("parts", {
   description: text("description").notNull(),
   category: text("category").notNull().default("other"),
   unitPrice: numeric("unit_price", { precision: 10, scale: 2 }).notNull(),
+  msrpPrice: numeric("msrp_price", { precision: 10, scale: 2 }),
+  ourCost: numeric("our_cost", { precision: 10, scale: 2 }),
   quantityInStock: integer("quantity_in_stock").notNull().default(0),
   supplierId: integer("supplier_id").references(() => suppliersTable.id, { onDelete: "set null" }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),

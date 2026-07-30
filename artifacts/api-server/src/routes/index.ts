@@ -4,6 +4,7 @@ import partsRouter from "./parts";
 import suppliersRouter from "./suppliers";
 import invoicesRouter from "./invoices";
 import dashboardRouter from "./dashboard";
+import settingsRouter from "./settings";
 
 const router: IRouter = Router();
 
@@ -12,5 +13,6 @@ router.use(partsRouter);
 router.use(suppliersRouter);
 router.use(invoicesRouter);
 router.use(dashboardRouter);
+router.use(settingsRouter);
 
 export default router;

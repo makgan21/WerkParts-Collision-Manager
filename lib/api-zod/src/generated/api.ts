@@ -30,8 +30,9 @@ export const ListPartsResponseItem = zod.object({
   "partNumber": zod.string(),
   "description": zod.string(),
   "category": zod.string().describe('clip | retainer | nut | bolt | other'),
-  "unitPrice": zod.string().describe('Decimal price as string'),
-  "quantityInStock": zod.number(),
+  "unitPrice": zod.string().describe('Retail\/OEM price as string'),
+  "msrpPrice": zod.string().nullish().describe('MSRP price as string'),
+  "ourCost": zod.string().nullish().describe('Our cost as string'),
   "supplierId": zod.number().nullish(),
   "supplierName": zod.string().nullish(),
   "createdAt": zod.string()
@@ -47,7 +48,8 @@ export const CreatePartBody = zod.object({
   "description": zod.string(),
   "category": zod.string(),
   "unitPrice": zod.string(),
-  "quantityInStock": zod.number(),
+  "msrpPrice": zod.string().nullish(),
+  "ourCost": zod.string().nullish(),
   "supplierId": zod.number().nullish()
 })
 
@@ -56,8 +58,9 @@ export const CreatePartResponse = zod.object({
   "partNumber": zod.string(),
   "description": zod.string(),
   "category": zod.string().describe('clip | retainer | nut | bolt | other'),
-  "unitPrice": zod.string().describe('Decimal price as string'),
-  "quantityInStock": zod.number(),
+  "unitPrice": zod.string().describe('Retail\/OEM price as string'),
+  "msrpPrice": zod.string().nullish().describe('MSRP price as string'),
+  "ourCost": zod.string().nullish().describe('Our cost as string'),
   "supplierId": zod.number().nullish(),
   "supplierName": zod.string().nullish(),
   "createdAt": zod.string()
@@ -76,8 +79,9 @@ export const GetPartResponse = zod.object({
   "partNumber": zod.string(),
   "description": zod.string(),
   "category": zod.string().describe('clip | retainer | nut | bolt | other'),
-  "unitPrice": zod.string().describe('Decimal price as string'),
-  "quantityInStock": zod.number(),
+  "unitPrice": zod.string().describe('Retail\/OEM price as string'),
+  "msrpPrice": zod.string().nullish().describe('MSRP price as string'),
+  "ourCost": zod.string().nullish().describe('Our cost as string'),
   "supplierId": zod.number().nullish(),
   "supplierName": zod.string().nullish(),
   "createdAt": zod.string()
@@ -96,7 +100,8 @@ export const UpdatePartBody = zod.object({
   "description": zod.string().optional(),
   "category": zod.string().optional(),
   "unitPrice": zod.string().optional(),
-  "quantityInStock": zod.number().optional(),
+  "msrpPrice": zod.string().nullish(),
+  "ourCost": zod.string().nullish(),
   "supplierId": zod.number().nullish()
 })
 
@@ -105,8 +110,9 @@ export const UpdatePartResponse = zod.object({
   "partNumber": zod.string(),
   "description": zod.string(),
   "category": zod.string().describe('clip | retainer | nut | bolt | other'),
-  "unitPrice": zod.string().describe('Decimal price as string'),
-  "quantityInStock": zod.number(),
+  "unitPrice": zod.string().describe('Retail\/OEM price as string'),
+  "msrpPrice": zod.string().nullish().describe('MSRP price as string'),
+  "ourCost": zod.string().nullish().describe('Our cost as string'),
   "supplierId": zod.number().nullish(),
   "supplierName": zod.string().nullish(),
   "createdAt": zod.string()
@@ -374,6 +380,112 @@ export const DeleteInvoiceParams = zod.object({
 })
 
 export const DeleteInvoiceResponse = zod.void()
+
+
+/**
+ * @summary List all technicians
+ */
+export const ListTechniciansResponseItem = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "createdAt": zod.string()
+})
+export const ListTechniciansResponse = zod.array(ListTechniciansResponseItem)
+
+
+/**
+ * @summary Create a technician
+ */
+export const CreateTechnicianBody = zod.object({
+  "name": zod.string()
+})
+
+export const CreateTechnicianResponse = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "createdAt": zod.string()
+})
+
+
+/**
+ * @summary Update a technician
+ */
+export const UpdateTechnicianParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const UpdateTechnicianBody = zod.object({
+  "name": zod.string()
+})
+
+export const UpdateTechnicianResponse = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "createdAt": zod.string()
+})
+
+
+/**
+ * @summary Delete a technician
+ */
+export const DeleteTechnicianParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const DeleteTechnicianResponse = zod.void()
+
+
+/**
+ * @summary List all insurance companies
+ */
+export const ListInsuranceCompaniesResponseItem = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "createdAt": zod.string()
+})
+export const ListInsuranceCompaniesResponse = zod.array(ListInsuranceCompaniesResponseItem)
+
+
+/**
+ * @summary Create an insurance company
+ */
+export const CreateInsuranceCompanyBody = zod.object({
+  "name": zod.string()
+})
+
+export const CreateInsuranceCompanyResponse = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "createdAt": zod.string()
+})
+
+
+/**
+ * @summary Update an insurance company
+ */
+export const UpdateInsuranceCompanyParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const UpdateInsuranceCompanyBody = zod.object({
+  "name": zod.string()
+})
+
+export const UpdateInsuranceCompanyResponse = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "createdAt": zod.string()
+})
+
+
+/**
+ * @summary Delete an insurance company
+ */
+export const DeleteInsuranceCompanyParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const DeleteInsuranceCompanyResponse = zod.void()
 
 
 /**

@@ -12,9 +12,18 @@ export interface Part {
   description: string;
   /** clip | retainer | nut | bolt | other */
   category: string;
-  /** Decimal price as string */
+  /** Retail/OEM price as string */
   unitPrice: string;
-  quantityInStock: number;
+  /**
+     * MSRP price as string
+     * @nullable
+     */
+  msrpPrice?: string | null;
+  /**
+     * Our cost as string
+     * @nullable
+     */
+  ourCost?: string | null;
   /** @nullable */
   supplierId?: number | null;
   /** @nullable */

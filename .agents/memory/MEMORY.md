@@ -1,0 +1,1 @@
+- [WerkParts stack & gotchas](werkparts-stack.md) — Orval 8.x + Zod v3 requires `type: number` (not `integer`) in openapi.yaml; dialog had inverted translate-y bug (fixed to top-[5%])

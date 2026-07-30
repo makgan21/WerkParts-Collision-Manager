@@ -1,15 +1,20 @@
 import { Link, useLocation } from "wouter";
-import { LayoutDashboard, FileText, Wrench, Truck } from "lucide-react";
+import { LayoutDashboard, FileText, Wrench, Settings, BarChart2 } from "lucide-react";
 
 export function Layout({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
 
-  const links = [
-    { href: "/", label: "Dashboard", icon: LayoutDashboard },
+  const mainLinks = [
+    { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
     { href: "/invoices", label: "Invoices", icon: FileText },
     { href: "/parts", label: "Parts", icon: Wrench },
-    { href: "/suppliers", label: "Suppliers", icon: Truck },
+    { href: "/reports", label: "Reports", icon: BarChart2 },
   ];
+
+  const isActive = (href: string) =>
+    href === "/invoices"
+      ? location === "/invoices" || (location.startsWith("/invoices/") && location !== "/invoices/new")
+      : location === href || (href !== "/" && location.startsWith(href));
 
   return (
     <div className="min-h-[100dvh] flex bg-background">
@@ -20,18 +25,42 @@ export function Layout({ children }: { children: React.ReactNode }) {
             <span>WerkParts</span>
           </div>
         </div>
+
         <nav className="flex-1 py-6 px-3 space-y-1">
-          {links.map((link) => {
-            const isActive = location === link.href || (link.href !== "/" && location.startsWith(link.href));
+          {mainLinks.map((link) => {
+            const active = isActive(link.href);
             return (
-              <Link key={link.href} href={link.href} className={`flex items-center gap-3 px-3 py-2.5 rounded-sm transition-colors text-sm font-bold uppercase tracking-wider ${isActive ? 'bg-primary text-primary-foreground' : 'hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'}`}>
+              <Link
+                key={link.href}
+                href={link.href}
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-sm transition-colors text-sm font-bold uppercase tracking-wider ${
+                  active
+                    ? "bg-primary text-primary-foreground"
+                    : "hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                }`}
+              >
                 <link.icon className="w-4 h-4" />
                 {link.label}
               </Link>
             );
           })}
         </nav>
+
+        <div className="px-3 pb-4 border-t border-sidebar-border/50 pt-3">
+          <Link
+            href="/settings"
+            className={`flex items-center gap-3 px-3 py-2.5 rounded-sm transition-colors text-sm font-bold uppercase tracking-wider ${
+              location.startsWith("/settings")
+                ? "bg-primary text-primary-foreground"
+                : "hover:bg-sidebar-accent hover:text-sidebar-accent-foreground text-sidebar-foreground/60"
+            }`}
+          >
+            <Settings className="w-4 h-4" />
+            Settings
+          </Link>
+        </div>
       </aside>
+
       <main className="flex-1 flex flex-col print-container overflow-x-hidden min-w-0">
         {children}
       </main>

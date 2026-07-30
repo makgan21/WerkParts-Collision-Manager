@@ -19,9 +19,18 @@ export interface Part {
   description: string;
   /** clip | retainer | nut | bolt | other */
   category: string;
-  /** Decimal price as string */
+  /** Retail/OEM price as string */
   unitPrice: string;
-  quantityInStock: number;
+  /**
+     * MSRP price as string
+     * @nullable
+     */
+  msrpPrice?: string | null;
+  /**
+     * Our cost as string
+     * @nullable
+     */
+  ourCost?: string | null;
   /** @nullable */
   supplierId?: number | null;
   /** @nullable */
@@ -34,7 +43,10 @@ export interface PartInput {
   description: string;
   category: string;
   unitPrice: string;
-  quantityInStock: number;
+  /** @nullable */
+  msrpPrice?: string | null;
+  /** @nullable */
+  ourCost?: string | null;
   /** @nullable */
   supplierId?: number | null;
 }
@@ -44,7 +56,10 @@ export interface PartUpdate {
   description?: string;
   category?: string;
   unitPrice?: string;
-  quantityInStock?: number;
+  /** @nullable */
+  msrpPrice?: string | null;
+  /** @nullable */
+  ourCost?: string | null;
   /** @nullable */
   supplierId?: number | null;
 }
@@ -183,6 +198,26 @@ export interface DashboardStats {
   revenueThisMonth: string;
   recentInvoices: Invoice[];
   partsByCategory: CategoryCount[];
+}
+
+export interface Technician {
+  id: number;
+  name: string;
+  createdAt: string;
+}
+
+export interface TechnicianInput {
+  name: string;
+}
+
+export interface InsuranceCompany {
+  id: number;
+  name: string;
+  createdAt: string;
+}
+
+export interface InsuranceCompanyInput {
+  name: string;
 }
 
 export type ListPartsParams = {

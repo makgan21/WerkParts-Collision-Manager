@@ -5,11 +5,17 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Printer, ArrowLeft, CheckCircle } from "lucide-react";
+import { Printer, ArrowLeft, CheckCircle, Ban } from "lucide-react";
 import { Link } from "wouter";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import { getGetInvoiceQueryKey } from "@workspace/api-client-react";
+
+function statusVariant(status: string): "default" | "secondary" | "destructive" | "outline" {
+  if (status === "finalized") return "default";
+  if (status === "voided") return "destructive";
+  return "secondary";
+}
 
 export default function InvoiceDetail() {
   const [, params] = useRoute("/invoices/:id");
@@ -27,52 +33,75 @@ export default function InvoiceDetail() {
     mutation: {
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: getGetInvoiceQueryKey(id) });
-        toast.success("Invoice status updated");
+        toast.success("Invoice updated");
       },
-      onError: () => toast.error("Failed to update status")
+      onError: () => toast.error("Failed to update invoice")
     }
   });
 
   if (isLoading) return <div className="p-8 font-bold uppercase tracking-wider animate-pulse">Loading invoice...</div>;
   if (error || !invoice) return <div className="p-8 font-bold text-destructive">Invoice not found.</div>;
 
-  const handlePrint = () => {
-    window.print();
+  const handleFinalize = () => {
+    if (confirm("Mark this invoice as finalized?")) {
+      updateInvoice.mutate({ id, data: { status: "finalized" } });
+    }
   };
 
-  const handleMarkPaid = () => {
-    updateInvoice.mutate({ id, data: { status: "paid" } });
+  const handleVoid = () => {
+    if (confirm("Void this invoice? It will remain in the system but be marked as voided.")) {
+      updateInvoice.mutate({ id, data: { status: "voided" } });
+    }
   };
+
+  const isVoided = invoice.status === "voided";
+  const isFinalized = invoice.status === "finalized";
 
   return (
     <div className="p-8 max-w-5xl mx-auto w-full space-y-8 print:p-0 print:m-0 print:max-w-none">
-      {/* Action Bar - Hidden on print */}
+      {/* Action Bar */}
       <div className="flex items-center justify-between no-print">
         <Link href="/invoices">
           <Button variant="ghost" className="gap-2"><ArrowLeft className="w-4 h-4" /> Back to Invoices</Button>
         </Link>
-        <div className="flex items-center gap-4">
-          <Badge variant={invoice.status as any} className="text-sm px-4 py-1">{invoice.status}</Badge>
-          {invoice.status !== 'paid' && (
-            <Button variant="outline" onClick={handleMarkPaid} disabled={updateInvoice.isPending} className="gap-2">
-              <CheckCircle className="w-4 h-4" /> Mark Paid
+        <div className="flex items-center gap-3">
+          <Badge variant={statusVariant(invoice.status)} className="text-sm px-4 py-1 capitalize">
+            {invoice.status}
+          </Badge>
+
+          {!isVoided && !isFinalized && (
+            <Button variant="outline" onClick={handleFinalize} disabled={updateInvoice.isPending} className="gap-2">
+              <CheckCircle className="w-4 h-4" /> Finalize
             </Button>
           )}
-          <Button onClick={handlePrint} className="gap-2">
+
+          {!isVoided && (
+            <Button variant="outline" onClick={handleVoid} disabled={updateInvoice.isPending}
+              className="gap-2 text-destructive border-destructive/50 hover:bg-destructive/10">
+              <Ban className="w-4 h-4" /> Void
+            </Button>
+          )}
+
+          <Button onClick={() => window.print()} className="gap-2">
             <Printer className="w-4 h-4" /> Print Invoice
           </Button>
         </div>
       </div>
 
+      {/* Voided banner */}
+      {isVoided && (
+        <div className="no-print bg-destructive/10 border border-destructive/30 rounded-sm px-4 py-3 text-destructive font-bold text-sm uppercase tracking-wider">
+          ⚠ This invoice has been voided and is no longer billable.
+        </div>
+      )}
+
       {/* Invoice Document */}
-      <div className="bg-card text-card-foreground p-12 border border-border rounded-md shadow-sm print:border-none print:shadow-none print:p-0">
-        
+      <div className={`bg-card text-card-foreground p-12 border border-border rounded-md shadow-sm print:border-none print:shadow-none print:p-0 ${isVoided ? "opacity-70" : ""}`}>
+
         {/* Header */}
         <div className="flex justify-between items-start mb-12 border-b border-border pb-8">
           <div>
-            <h1 className="text-4xl font-black uppercase tracking-tighter text-primary flex items-center gap-2">
-              WerkParts
-            </h1>
+            <h1 className="text-4xl font-black uppercase tracking-tighter text-primary">WerkParts</h1>
             <p className="text-muted-foreground font-bold mt-1">Collision Fastener Manager</p>
           </div>
           <div className="text-right space-y-1">
@@ -153,7 +182,7 @@ export default function InvoiceDetail() {
             <p className="text-5xl font-black font-mono tracking-tighter">{formatCurrency(invoice.totalAmount)}</p>
           </div>
         </div>
-        
+
       </div>
     </div>
   );

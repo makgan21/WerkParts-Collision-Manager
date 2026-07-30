@@ -11,7 +11,10 @@ export interface PartUpdate {
   description?: string;
   category?: string;
   unitPrice?: string;
-  quantityInStock?: number;
+  /** @nullable */
+  msrpPrice?: string | null;
+  /** @nullable */
+  ourCost?: string | null;
   /** @nullable */
   supplierId?: number | null;
 }

@@ -18,6 +18,8 @@ tags:
     description: Invoice management
   - name: dashboard
     description: Dashboard stats
+  - name: settings
+    description: Settings management (technicians, insurance companies)
 
 paths:
   /healthz:
@@ -367,6 +369,170 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
 
+  /technicians:
+    get:
+      operationId: listTechnicians
+      tags: [settings]
+      summary: List all technicians
+      responses:
+        "200":
+          description: List of technicians
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Technician"
+    post:
+      operationId: createTechnician
+      tags: [settings]
+      summary: Create a technician
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TechnicianInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Technician"
+
+  /technicians/{id}:
+    put:
+      operationId: updateTechnician
+      tags: [settings]
+      summary: Update a technician
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TechnicianInput"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Technician"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      operationId: deleteTechnician
+      tags: [settings]
+      summary: Delete a technician
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      responses:
+        "204":
+          description: Deleted
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /insurance-companies:
+    get:
+      operationId: listInsuranceCompanies
+      tags: [settings]
+      summary: List all insurance companies
+      responses:
+        "200":
+          description: List of insurance companies
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/InsuranceCompany"
+    post:
+      operationId: createInsuranceCompany
+      tags: [settings]
+      summary: Create an insurance company
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InsuranceCompanyInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InsuranceCompany"
+
+  /insurance-companies/{id}:
+    put:
+      operationId: updateInsuranceCompany
+      tags: [settings]
+      summary: Update an insurance company
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InsuranceCompanyInput"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InsuranceCompany"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      operationId: deleteInsuranceCompany
+      tags: [settings]
+      summary: Delete an insurance company
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      responses:
+        "204":
+          description: Deleted
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
   /dashboard:
     get:
       operationId: getDashboard
@@ -400,7 +566,7 @@ components:
 
     Part:
       type: object
-      required: [id, partNumber, description, category, unitPrice, quantityInStock, createdAt]
+      required: [id, partNumber, description, category, unitPrice, createdAt]
       properties:
         id:
           type: number
@@ -413,9 +579,13 @@ components:
           description: "clip | retainer | nut | bolt | other"
         unitPrice:
           type: string
-          description: Decimal price as string
-        quantityInStock:
-          type: number
+          description: Retail/OEM price as string
+        msrpPrice:
+          type: ["string", "null"]
+          description: MSRP price as string
+        ourCost:
+          type: ["string", "null"]
+          description: Our cost as string
         supplierId:
           type: ["number", "null"]
         supplierName:
@@ -425,7 +595,7 @@ components:
 
     PartInput:
       type: object
-      required: [partNumber, description, category, unitPrice, quantityInStock]
+      required: [partNumber, description, category, unitPrice]
       properties:
         partNumber:
           type: string
@@ -435,8 +605,10 @@ components:
           type: string
         unitPrice:
           type: string
-        quantityInStock:
-          type: number
+        msrpPrice:
+          type: ["string", "null"]
+        ourCost:
+          type: ["string", "null"]
         supplierId:
           type: ["number", "null"]
 
@@ -451,8 +623,10 @@ components:
           type: string
         unitPrice:
           type: string
-        quantityInStock:
-          type: number
+        msrpPrice:
+          type: ["string", "null"]
+        ourCost:
+          type: ["string", "null"]
         supplierId:
           type: ["number", "null"]
 
@@ -689,3 +863,39 @@ components:
           type: string
         count:
           type: number
+
+    Technician:
+      type: object
+      required: [id, name, createdAt]
+      properties:
+        id:
+          type: number
+        name:
+          type: string
+        createdAt:
+          type: string
+
+    TechnicianInput:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+
+    InsuranceCompany:
+      type: object
+      required: [id, name, createdAt]
+      properties:
+        id:
+          type: number
+        name:
+          type: string
+        createdAt:
+          type: string
+
+    InsuranceCompanyInput:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
