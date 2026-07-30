@@ -1,5 +1,12 @@
 import { useState, useRef } from "react";
-import { useCreateInvoice, useListTechnicians, useListInsuranceCompanies } from "@workspace/api-client-react";
+import { useQueryClient } from "@tanstack/react-query";
+import {
+  useCreateInvoice,
+  useListTechnicians,
+  useListInsuranceCompanies,
+  useCreateInsuranceCompany,
+  getListInsuranceCompaniesQueryKey,
+} from "@workspace/api-client-react";
 import { useLocation } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
