@@ -101,8 +101,6 @@ export default function InvoiceDetail() {
         {/* Header */}
         <div className="flex justify-between items-start mb-12 border-b border-border pb-8">
           <div>
-            <h1 className="text-4xl font-black uppercase tracking-tighter text-primary">WerkParts</h1>
-            <p className="text-muted-foreground font-bold mt-1">Collision Fastener Manager</p>
           </div>
           <div className="text-right space-y-1">
             <h2 className="text-3xl font-black tracking-tight uppercase text-muted-foreground">{invoice.invoiceNumber}</h2>

@@ -76,9 +76,9 @@ export default function Dashboard() {
         </Card>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="space-y-4">
         {/* Recent Invoices */}
-        <div className="lg:col-span-2 space-y-4">
+        <div className="space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-xl font-black uppercase tracking-tight">Recent Invoices</h2>
             <Link href="/invoices">
@@ -119,26 +119,6 @@ export default function Dashboard() {
                 )}
               </TableBody>
             </Table>
-          </Card>
-        </div>
-
-        {/* Parts by Category */}
-        <div className="space-y-4">
-          <h2 className="text-xl font-black uppercase tracking-tight">Parts Breakdown</h2>
-          <Card>
-            <CardContent className="p-0">
-              <ul className="divide-y divide-border">
-                {dashboard.partsByCategory.map((cat) => (
-                  <li key={cat.category} className="flex items-center justify-between p-4">
-                    <span className="font-bold uppercase tracking-wider text-sm">{cat.category}</span>
-                    <Badge variant="secondary" className="font-mono text-sm">{cat.count}</Badge>
-                  </li>
-                ))}
-                {dashboard.partsByCategory.length === 0 && (
-                  <li className="p-4 text-center text-muted-foreground">No parts available.</li>
-                )}
-              </ul>
-            </CardContent>
           </Card>
         </div>
       </div>
