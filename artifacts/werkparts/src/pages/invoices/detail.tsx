@@ -1,5 +1,5 @@
 import { useRoute } from "wouter";
-import { useGetInvoice, useUpdateInvoice } from "@workspace/api-client-react";
+import { createInsuranceCompany, useGetInvoice, useUpdateInvoice } from "@workspace/api-client-react";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -10,6 +10,7 @@ import { Link } from "wouter";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import { getGetInvoiceQueryKey } from "@workspace/api-client-react";
+import WerkheiserLogo from "@/assets/werkheiser-logo.png";
 
 function statusVariant(status: string): "default" | "secondary" | "destructive" | "outline" {
   if (status === "finalized") return "default";
@@ -101,11 +102,16 @@ export default function InvoiceDetail() {
         {/* Header */}
         <div className="flex justify-between items-start mb-12 border-b border-border pb-8">
           <div>
+            <img 
+              src={WerkheiserLogo}
+              alt="Werkheiser Collision"
+              className="h-auto w-auto"
+            />
           </div>
           <div className="text-right space-y-1">
-            <h2 className="text-3xl font-black tracking-tight uppercase text-muted-foreground">{invoice.invoiceNumber}</h2>
+            <h2 className="text-3xl font-black tracking-tight uppercase text-muted-foreground print:text-black">{invoice.invoiceNumber}</h2>
             <p className="font-mono font-bold text-lg">RO: {invoice.roNumber}</p>
-            <p className="text-muted-foreground">Date: {formatDate(invoice.date)}</p>
+            <p className="text-muted-foreground print:text-black">Date: {formatDate(invoice.date)}</p>
           </div>
         </div>
 
@@ -113,17 +119,17 @@ export default function InvoiceDetail() {
         <div className="grid grid-cols-2 gap-8 mb-12">
           <div className="space-y-4">
             <div>
-              <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Vehicle</p>
+              <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground print:text-black">Vehicle</p>
               <p className="font-bold text-lg">{invoice.vehicleYear} {invoice.vehicleMake} {invoice.vehicleModel}</p>
             </div>
             <div>
-              <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Technician</p>
+              <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground print:text-black">Technician</p>
               <p className="font-bold">{invoice.techName}</p>
             </div>
           </div>
           <div className="space-y-4">
             <div>
-              <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Insurance Company</p>
+              <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground print:text-black">Insurance Company</p>
               <p className="font-bold text-lg">{invoice.insuranceCompany}</p>
             </div>
           </div>
@@ -153,7 +159,7 @@ export default function InvoiceDetail() {
               ))}
               {invoice.items.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">No line items.</TableCell>
+                  <TableCell colSpan={5} className="text-center py-8 text-muted-foreground print:text-black">No line items.</TableCell>
                 </TableRow>
               )}
             </TableBody>
@@ -176,7 +182,7 @@ export default function InvoiceDetail() {
             </div>
           </div>
           <div className="text-right space-y-2">
-            <p className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Total Amount</p>
+            <p className="text-sm font-bold uppercase tracking-wider text-muted-foreground print:text-black">Total Amount</p>
             <p className="text-5xl font-black font-mono tracking-tighter">{formatCurrency(invoice.totalAmount)}</p>
           </div>
         </div>

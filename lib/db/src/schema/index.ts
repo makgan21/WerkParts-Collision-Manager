@@ -4,3 +4,4 @@ export * from "./invoices";
 export * from "./invoiceItems";
 export * from "./technicians";
 export * from "./insuranceCompanies";
+export * from "./CrossReferences";

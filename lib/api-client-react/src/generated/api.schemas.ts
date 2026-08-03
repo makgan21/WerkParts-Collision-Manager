@@ -220,6 +220,30 @@ export interface InsuranceCompanyInput {
   name: string;
 }
 
+export interface OemCrossReference {
+  id: number;
+  partId: number;
+  manufacturer: string;
+  oemPartNumber: string;
+  /** @nullable */
+  oemDescription?: string | null;
+}
+
+export interface OemCrossReferenceInput {
+  partId: number;
+  manufacturer: string;
+  oemPartNumber: string;
+  /** @nullable */
+  oemDescription?: string | null;
+}
+
+export interface OemCrossReferenceUpdate {
+  manufacturer?: string;
+  oemPartNumber?: string;
+  /** @nullable */
+  oemDescription?: string | null;
+}
+
 export type ListPartsParams = {
 search?: string;
 category?: string;

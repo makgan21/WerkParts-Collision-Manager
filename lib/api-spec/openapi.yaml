@@ -899,3 +899,48 @@ components:
       properties:
         name:
           type: string
+             
+    OemCrossReference:
+      type: object
+      required:
+        - id
+        - partId
+        - manufacturer
+        - oemPartNumber
+      properties:
+        id:
+          type: number
+        partId:
+          type: number
+        manufacturer:
+          type: string
+        oemPartNumber:
+          type: string
+        oemDescription:
+          type: ["string", "null"]
+
+    OemCrossReferenceInput:
+      type: object
+      required:
+        - partId
+        - manufacturer
+        - oemPartNumber
+      properties:
+        partId:
+          type: number
+        manufacturer:
+          type: string
+        oemPartNumber:
+          type: string
+        oemDescription:
+          type: ["string", "null"]
+
+    OemCrossReferenceUpdate:
+      type: object
+      properties:
+        manufacturer:
+          type: string
+        oemPartNumber:
+          type: string
+        oemDescription:
+          type: ["string", "null"]
