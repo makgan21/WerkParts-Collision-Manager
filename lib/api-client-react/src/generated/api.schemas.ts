@@ -220,28 +220,40 @@ export interface InsuranceCompanyInput {
   name: string;
 }
 
-export interface OemCrossReference {
+export interface CrossReference {
   id: number;
   partId: number;
-  manufacturer: string;
-  oemPartNumber: string;
+  referenceType: string;
+  referenceNumber: string;
   /** @nullable */
-  oemDescription?: string | null;
+  referenceDescription?: string | null;
+  /** @nullable */
+  referencePrice?: string | null;
+  /** @nullable */
+  notes?: string | null;
 }
 
-export interface OemCrossReferenceInput {
+export interface CrossReferenceInput {
   partId: number;
-  manufacturer: string;
-  oemPartNumber: string;
+  referenceType: string;
+  referenceNumber: string;
   /** @nullable */
-  oemDescription?: string | null;
+  referenceDescription?: string | null;
+  /** @nullable */
+  referencePrice?: string | null;
+  /** @nullable */
+  notes?: string | null;
 }
 
-export interface OemCrossReferenceUpdate {
-  manufacturer?: string;
-  oemPartNumber?: string;
+export interface CrossReferenceUpdate {
+  referenceType?: string;
+  referenceNumber?: string;
   /** @nullable */
-  oemDescription?: string | null;
+  referenceDescription?: string | null;
+  /** @nullable */
+  referencePrice?: string | null;
+  /** @nullable */
+  notes?: string | null;
 }
 
 export type ListPartsParams = {

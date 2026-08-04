@@ -7,6 +7,9 @@
  */
 
 export * from './categoryCount';
+export * from './crossReference';
+export * from './crossReferenceInput';
+export * from './crossReferenceUpdate';
 export * from './dashboardStats';
 export * from './errorResponse';
 export * from './healthStatus';
@@ -20,9 +23,6 @@ export * from './invoiceItemInput';
 export * from './invoiceUpdate';
 export * from './listInvoicesParams';
 export * from './listPartsParams';
-export * from './oemCrossReference';
-export * from './oemCrossReferenceInput';
-export * from './oemCrossReferenceUpdate';
 export * from './part';
 export * from './partInput';
 export * from './partUpdate';

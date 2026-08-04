@@ -20,6 +20,8 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  CrossReference,
+  CrossReferenceInput,
   DashboardStats,
   ErrorResponse,
   HealthStatus,
@@ -520,6 +522,231 @@ export const useDeletePart = <TError = ErrorType<ErrorResponse>,
       > => {
       return useMutation(getDeletePartMutationOptions(options));
     }
+
+export const getListCrossReferencesUrl = () => {
+
+
+
+
+  return `/api/cross-references`
+}
+
+/**
+ * @summary List all cross references
+ */
+export const listCrossReferences = async ( options?: Parameters<typeof customFetch>[1]): Promise<CrossReference[]> => {
+
+  return customFetch<CrossReference[]>(getListCrossReferencesUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListCrossReferencesQueryKey = () => {
+    return [
+    `/api/cross-references`
+    ] as const;
+    }
+
+
+export const getListCrossReferencesQueryOptions = <TData = Awaited<ReturnType<typeof listCrossReferences>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listCrossReferences>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListCrossReferencesQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listCrossReferences>>> = ({ signal }) => listCrossReferences({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listCrossReferences>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListCrossReferencesQueryResult = NonNullable<Awaited<ReturnType<typeof listCrossReferences>>>
+export type ListCrossReferencesQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary List all cross references
+ */
+
+export function useListCrossReferences<TData = Awaited<ReturnType<typeof listCrossReferences>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listCrossReferences>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListCrossReferencesQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getCreateCrossReferenceUrl = () => {
+
+
+
+
+  return `/api/cross-references`
+}
+
+/**
+ * @summary Create a cross reference
+ */
+export const createCrossReference = async (crossReferenceInput: CrossReferenceInput, options?: Parameters<typeof customFetch>[1]): Promise<CrossReference> => {
+
+  return customFetch<CrossReference>(getCreateCrossReferenceUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(crossReferenceInput)
+  }
+);}
+
+
+
+
+
+export const getCreateCrossReferenceMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createCrossReference>>, TError,{data: BodyType<CrossReferenceInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createCrossReference>>, TError,{data: BodyType<CrossReferenceInput>}, TContext> => {
+
+const mutationKey = ['createCrossReference'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createCrossReference>>, {data: BodyType<CrossReferenceInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  createCrossReference(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateCrossReferenceMutationResult = NonNullable<Awaited<ReturnType<typeof createCrossReference>>>
+    export type CreateCrossReferenceMutationBody = BodyType<CrossReferenceInput>
+    export type CreateCrossReferenceMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Create a cross reference
+ */
+export const useCreateCrossReference = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createCrossReference>>, TError,{data: BodyType<CrossReferenceInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createCrossReference>>,
+        TError,
+        {data: BodyType<CrossReferenceInput>},
+        TContext
+      > => {
+      return useMutation(getCreateCrossReferenceMutationOptions(options));
+    }
+
+export const getListCrossReferencesByPartUrl = (partId: number,) => {
+
+
+
+
+  return `/api/cross-references/${partId}`
+}
+
+/**
+ * @summary List cross references for a part
+ */
+export const listCrossReferencesByPart = async (partId: number, options?: Parameters<typeof customFetch>[1]): Promise<CrossReference[]> => {
+
+  return customFetch<CrossReference[]>(getListCrossReferencesByPartUrl(partId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListCrossReferencesByPartQueryKey = (partId: number,) => {
+    return [
+    `/api/cross-references/${partId}`
+    ] as const;
+    }
+
+
+export const getListCrossReferencesByPartQueryOptions = <TData = Awaited<ReturnType<typeof listCrossReferencesByPart>>, TError = ErrorType<unknown>>(partId: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listCrossReferencesByPart>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListCrossReferencesByPartQueryKey(partId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listCrossReferencesByPart>>> = ({ signal }) => listCrossReferencesByPart(partId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: partId !== null && partId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listCrossReferencesByPart>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListCrossReferencesByPartQueryResult = NonNullable<Awaited<ReturnType<typeof listCrossReferencesByPart>>>
+export type ListCrossReferencesByPartQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary List cross references for a part
+ */
+
+export function useListCrossReferencesByPart<TData = Awaited<ReturnType<typeof listCrossReferencesByPart>>, TError = ErrorType<unknown>>(
+ partId: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listCrossReferencesByPart>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListCrossReferencesByPartQueryOptions(partId,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
 
 export const getListSuppliersUrl = () => {
 

@@ -10,10 +10,23 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { Search, Plus, Edit2, Trash2, Upload } from "lucide-react";
+import {
+  Search,
+  Plus,
+  Edit2,
+  Trash2,
+  Upload,
+  Link2,
+  ChevronRight,
+  ChevronDown,
+} from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
+import {
+  createCrossReference,
+  listCrossReferencesByPart,
+} from "@workspace/api-client-react";
 
 const selectClass =
   "flex h-10 w-full rounded-sm border-2 border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:border-primary";
@@ -25,10 +38,34 @@ export default function Parts() {
   const [categoryFilter, setCategoryFilter] = useState("");
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [editingPart, setEditingPart] = useState<any>(null);
+  const [referencesPart, setReferencesPart] = useState<any>(null);
+  const [isReferencesOpen, setIsReferencesOpen] = useState(false);
+  const [isAddingReference, setIsAddingReference] = useState(false);
+
+  const emptyReference = {
+    manufacturer: "",
+    partNumber: "",
+    description: "",
+    price: "",
+    notes: "",
+  };
+
+  const [newReference, setNewReference] = useState(emptyReference);
+  const [crossReferences, setCrossReferences] = useState<any[]>([]);
   const [isImporting, setIsImporting] = useState(false);
   const csvInputRef = useRef<HTMLInputElement>(null);
 
   const queryClient = useQueryClient();
+
+  const loadCrossReferences = async (partId: number) => {
+    try {
+      const refs = await listCrossReferencesByPart(partId);
+      setCrossReferences(refs);
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to load cross references.");
+    }
+  };
 
   const { data: parts, isLoading } = useListParts({
     search: search || undefined,
@@ -339,6 +376,17 @@ export default function Parts() {
                       <Button
                         variant="ghost"
                         size="icon"
+                        onClick={async () => {
+                            setReferencesPart(part);
+                            await loadCrossReferences(part.id);
+                            setIsReferencesOpen(true);
+                        }}
+                      >
+                        <Link2 className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
                         className="text-destructive hover:text-destructive hover:bg-destructive/10"
                         onClick={() => {
                           if (confirm("Delete this part?")) deletePart.mutate({ id: part.id });
@@ -372,6 +420,220 @@ export default function Parts() {
             <DialogTitle>Edit Part: {editingPart?.partNumber}</DialogTitle>
           </DialogHeader>
           {editingPart && <PartForm part={editingPart} />}
+        </DialogContent>
+      </Dialog>
+      {/* Cross References Dialog */}
+      <Dialog
+        open={isReferencesOpen}
+        onOpenChange={(open) => {
+          setIsReferencesOpen(open);
+          if (!open) setReferencesPart(null);
+        }}
+      >
+        <DialogContent className="max-w-xl">
+          <DialogHeader>
+            <DialogTitle>
+              Cross References - {referencesPart?.partNumber}
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="py-8 text-center space-y-6">
+            {crossReferences.length === 0 ? (
+              <p className="text-muted-foreground">
+                No cross references have been added.
+              </p>
+            ) : (
+              <div className="space-y-2 text-left">
+                {crossReferences.map((ref) => (
+                  <Card key={ref.id} className="p-3">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <div className="font-semibold">
+                          {ref.referenceType}
+                        </div>
+
+                        <div className="font-mono text-sm">
+                          {ref.referenceNumber}
+                        </div>
+
+                        {ref.referenceDescription && (
+                          <div className="text-sm text-muted-foreground">
+                            {ref.referenceDescription}
+                          </div>
+                        )}
+
+                        {ref.notes && (
+                          <div className="text-xs text-muted-foreground mt-1">
+                            {ref.notes}
+                          </div>
+                        )}
+                      </div>
+
+                      {ref.referencePrice && (
+                        <Badge variant="secondary">
+                          ${ref.referencePrice}
+                        </Badge>
+                      )}
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            )}
+
+            <Button
+              variant="outline"
+              className="w-full justify-start gap-2"
+              onClick={() => setIsAddingReference(!isAddingReference)}
+            >
+              {isAddingReference ? (
+                <ChevronDown className="w-4 h-4" />
+              ) : (
+                <ChevronRight className="w-4 h-4" />
+              )}
+
+              Add Reference
+            </Button>
+            {isAddingReference && (
+              <div className="mt-6 space-y-4 border-t pt-4">
+
+                <div className="space-y-2">
+                  <Label>Manufacturer</Label>
+                  <Input
+                    value={newReference.manufacturer}
+                    onChange={(e) =>
+                      setNewReference({
+                        ...newReference,
+                        manufacturer: e.target.value,
+                      })
+                    }
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Part Number</Label>
+                  <Input
+                    value={newReference.partNumber}
+                    onChange={(e) =>
+                      setNewReference({
+                        ...newReference,
+                        partNumber: e.target.value,
+                      })
+                    }
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Description</Label>
+                  <Input
+                    value={newReference.description}
+                    onChange={(e) =>
+                      setNewReference({
+                        ...newReference,
+                        description: e.target.value,
+                      })
+                    }
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Price</Label>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    value={newReference.price}
+                    onChange={(e) =>
+                      setNewReference({
+                        ...newReference,
+                        price: e.target.value,
+                      })
+                    }
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Notes</Label>
+                  <Input
+                    value={newReference.notes}
+                    onChange={(e) =>
+                      setNewReference({
+                        ...newReference,
+                        notes: e.target.value,
+                      })
+                    }
+                  />
+                </div>
+
+                <div className="flex justify-end gap-2">
+
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setIsAddingReference(false);
+                      setNewReference(emptyReference);
+                    }}
+                  >
+                    Cancel
+                  </Button>
+
+                  <Button
+                    onClick={async () => {
+                      console.log("SAVE CLICKED");
+
+                      if (!referencesPart) {
+                        console.log("No referencesPart");
+                        return;
+                      }
+
+                      try {
+                        console.log({
+                          partId: referencesPart.id,
+                          referenceType: newReference.manufacturer,
+                          referenceNumber: newReference.partNumber,
+                          referenceDescription: newReference.description,
+                          referencePrice: newReference.price,
+                          notes: newReference.notes,
+                        });
+
+                        const result = await createCrossReference({
+                          partId: referencesPart.id,
+                          referenceType: newReference.manufacturer,
+                          referenceNumber: newReference.partNumber,
+                          referenceDescription: newReference.description || null,
+                          referencePrice: newReference.price || null,
+                          notes: newReference.notes || null,
+                        });
+
+                        console.log("SUCCESS!", result);
+
+                        setNewReference(emptyReference);
+                        setIsAddingReference(false);
+
+                        await loadCrossReferences(referencesPart.id);
+                      } catch (err) {
+                        console.error("SAVE FAILED", err);
+                      }
+                    }}
+                  >
+                    Save
+                  </Button>
+
+                </div>
+
+              </div>
+            )}
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setIsReferencesOpen(false);
+                setReferencesPart(null);
+              }}
+            >
+              Close
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

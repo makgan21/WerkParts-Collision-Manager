@@ -20,6 +20,8 @@ tags:
     description: Dashboard stats
   - name: settings
     description: Settings management (technicians, insurance companies)
+  - name: crossReferences
+    description: Cross reference management
 
 paths:
   /healthz:
@@ -149,7 +151,73 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+  /cross-references:
+        get:
+          operationId: listCrossReferences
+          tags: [crossReferences]
+          summary: List all cross references
+          responses:
+            "200":
+              description: List of cross references
+              content:
+                application/json:
+                  schema:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/CrossReference"
 
+        post:
+          operationId: createCrossReference
+          tags: [crossReferences]
+          summary: Create a cross reference
+          requestBody:
+            required: true
+            content:
+              application/json:
+                schema:
+                  $ref: "#/components/schemas/CrossReferenceInput"
+          responses:
+            "201":
+              description: Created
+              content:
+                application/json:
+                  schema:
+                    $ref: "#/components/schemas/CrossReference"
+
+  /cross-references/{partId}:
+        get:
+          operationId: listCrossReferencesByPart
+          tags: [crossReferences]
+          summary: List cross references for a part
+          parameters:
+            - name: partId
+              in: path
+              required: true
+              schema:
+                type: integer
+          responses:
+            "200":
+              description: List of cross references
+              content:
+                application/json:
+                  schema:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/CrossReference"
+    /cross-references/item/{id}:
+          delete:
+              operationId: deleteCrossReference
+              tags: [crossReferences]
+              summary: Delete a cross reference
+              parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: integer
+              responses:
+                "204":
+                  description: Deleted
   /suppliers:
     get:
       operationId: listSuppliers
@@ -900,47 +968,59 @@ components:
         name:
           type: string
              
-    OemCrossReference:
+    CrossReference:
       type: object
       required:
         - id
         - partId
-        - manufacturer
-        - oemPartNumber
+        - referenceType
+        - referenceNumber
       properties:
         id:
           type: number
         partId:
           type: number
-        manufacturer:
+        referenceType:
           type: string
-        oemPartNumber:
+        referenceNumber:
           type: string
-        oemDescription:
+        referenceDescription:
+          type: ["string", "null"]
+        referencePrice:
+          type: ["string", "null"]
+        notes:
           type: ["string", "null"]
 
-    OemCrossReferenceInput:
+    CrossReferenceInput:
       type: object
       required:
         - partId
-        - manufacturer
-        - oemPartNumber
+        - referenceType
+        - referenceNumber
       properties:
         partId:
           type: number
-        manufacturer:
+        referenceType:
           type: string
-        oemPartNumber:
+        referenceNumber:
           type: string
-        oemDescription:
+        referenceDescription:
+          type: ["string", "null"]
+        referencePrice:
+          type: ["string", "null"]
+        notes:
           type: ["string", "null"]
 
-    OemCrossReferenceUpdate:
+    CrossReferenceUpdate:
       type: object
       properties:
-        manufacturer:
+        referenceType:
           type: string
-        oemPartNumber:
+        referenceNumber:
           type: string
-        oemDescription:
+        referenceDescription:
+          type: ["string", "null"]
+        referencePrice:
+          type: ["string", "null"]
+        notes:
           type: ["string", "null"]

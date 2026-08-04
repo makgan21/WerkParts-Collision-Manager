@@ -130,6 +130,63 @@ export const DeletePartResponse = zod.void()
 
 
 /**
+ * @summary List all cross references
+ */
+export const ListCrossReferencesResponseItem = zod.object({
+  "id": zod.number(),
+  "partId": zod.number(),
+  "referenceType": zod.string(),
+  "referenceNumber": zod.string(),
+  "referenceDescription": zod.string().nullish(),
+  "referencePrice": zod.string().nullish(),
+  "notes": zod.string().nullish()
+})
+export const ListCrossReferencesResponse = zod.array(ListCrossReferencesResponseItem)
+
+
+/**
+ * @summary Create a cross reference
+ */
+export const CreateCrossReferenceBody = zod.object({
+  "partId": zod.number(),
+  "referenceType": zod.string(),
+  "referenceNumber": zod.string(),
+  "referenceDescription": zod.string().nullish(),
+  "referencePrice": zod.string().nullish(),
+  "notes": zod.string().nullish()
+})
+
+export const CreateCrossReferenceResponse = zod.object({
+  "id": zod.number(),
+  "partId": zod.number(),
+  "referenceType": zod.string(),
+  "referenceNumber": zod.string(),
+  "referenceDescription": zod.string().nullish(),
+  "referencePrice": zod.string().nullish(),
+  "notes": zod.string().nullish()
+})
+
+
+/**
+ * @summary List cross references for a part
+ */
+export const ListCrossReferencesByPartParams = zod.object({
+  "partId": zod.coerce.number().int()
+})
+
+export const ListCrossReferencesByPartResponseItem = zod.object({
+  "id": zod.number(),
+  "partId": zod.number(),
+  "referenceType": zod.string(),
+  "referenceNumber": zod.string(),
+  "referenceDescription": zod.string().nullish(),
+  "referencePrice": zod.string().nullish(),
+  "notes": zod.string().nullish()
+})
+export const ListCrossReferencesByPartResponse = zod.array(ListCrossReferencesByPartResponseItem)
+
+
+/**
  * @summary List all suppliers
  */
 export const ListSuppliersResponseItem = zod.object({
