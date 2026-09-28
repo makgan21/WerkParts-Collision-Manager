@@ -23,6 +23,7 @@ const CATEGORIES = ["clip", "retainer", "nut", "bolt", "other"];
 const IMPORT_ALIASES = {
   partNumber: [
     "part number", "part no", "part num", "part#", "partnumber", "part",
+    "auveco part #", "auveco part number", "auveco part no",
     "sku", "item number", "item no", "product code", "product id", "code",
   ],
   description: ["description", "desc", "part description", "item description", "name", "details"],
@@ -30,10 +31,11 @@ const IMPORT_ALIASES = {
   packQuantity: [
     "pack quantity", "pack qty", "packquantity", "pack_quantity",
     "quantity per pack", "qty per pack", "package quantity", "pack size",
+    "quantity", "qty",
   ],
   packPrice: [
     "pack price", "packprice", "pack_price", "price per pack",
-    "package price", "case price", "pack cost", "case cost",
+    "package price", "case price", "pack cost", "case cost", "price",
   ],
   priceEach: [
     "price each", "priceeach", "price_each", "unit price", "unit cost",
