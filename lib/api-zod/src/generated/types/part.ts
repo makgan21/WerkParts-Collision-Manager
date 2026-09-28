@@ -10,8 +10,6 @@ export interface Part {
   id: number;
   partNumber: string;
   description: string;
-  /** clip | retainer | nut | bolt | other */
-  category: string;
   /** @nullable */
   packQuantity?: number | null;
   /**

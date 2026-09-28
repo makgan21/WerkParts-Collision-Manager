@@ -48,10 +48,6 @@ paths:
           in: query
           schema:
             type: string
-        - name: category
-          in: query
-          schema:
-            type: string
       responses:
         "200":
           description: List of parts
@@ -659,7 +655,7 @@ components:
 
     Part:
       type: object
-      required: [id, partNumber, description, category, createdAt]
+      required: [id, partNumber, description, createdAt]
       properties:
         id:
           type: number
@@ -667,9 +663,6 @@ components:
           type: string
         description:
           type: string
-        category:
-          type: string
-          description: "clip | retainer | nut | bolt | other"
         packQuantity:
           type: ["number", "null"]
         packPrice:
@@ -687,13 +680,11 @@ components:
 
     PartInput:
       type: object
-      required: [partNumber, description, category]
+      required: [partNumber, description]
       properties:
         partNumber:
           type: string
         description:
-          type: string
-        category:
           type: string
         packQuantity:
           type: ["number", "null"]
@@ -710,8 +701,6 @@ components:
         partNumber:
           type: string
         description:
-          type: string
-        category:
           type: string
         packQuantity:
           type: ["number", "null"]
@@ -928,7 +917,7 @@ components:
 
     DashboardStats:
       type: object
-      required: [totalInvoices, totalRevenue, invoicesThisMonth, revenueThisMonth, recentInvoices, partsByCategory]
+      required: [totalInvoices, totalRevenue, invoicesThisMonth, revenueThisMonth, recentInvoices]
       properties:
         totalInvoices:
           type: number
@@ -942,20 +931,6 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/Invoice"
-        partsByCategory:
-          type: array
-          items:
-            $ref: "#/components/schemas/CategoryCount"
-
-    CategoryCount:
-      type: object
-      required: [category, count]
-      properties:
-        category:
-          type: string
-        count:
-          type: number
-
     Technician:
       type: object
       required: [id, name, createdAt]

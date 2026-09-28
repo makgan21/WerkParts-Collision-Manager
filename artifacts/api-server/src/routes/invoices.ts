@@ -1,6 +1,6 @@
 import { Router, type IRouter } from "express";
 import { eq, desc } from "drizzle-orm";
-import { db, invoicesTable, invoiceItemsTable, partsTable } from "@workspace/db";
+import { db, invoicesTable, invoiceItemsTable } from "@workspace/db";
 import {
   CreateInvoiceBody,
   UpdateInvoiceBody,
@@ -126,21 +126,6 @@ router.post("/invoices", async (req, res): Promise<void> => {
       )
       .returning();
 
-    // Decrement stock for parts
-    for (const item of items) {
-      if (item.partId) {
-        const [part] = await db
-          .select()
-          .from(partsTable)
-          .where(eq(partsTable.id, item.partId));
-        if (part) {
-          await db
-            .update(partsTable)
-            .set({ quantityInStock: Math.max(0, part.quantityInStock - item.quantity) })
-            .where(eq(partsTable.id, item.partId));
-        }
-      }
-    }
   }
 
   res.status(201).json({

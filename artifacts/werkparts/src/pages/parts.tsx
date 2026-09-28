@@ -9,7 +9,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Badge } from "@/components/ui/badge";
 import { Search, Plus, Edit2, Trash2, Upload } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 import { toast } from "sonner";
@@ -18,8 +17,6 @@ import { useQueryClient } from "@tanstack/react-query";
 const selectClass =
   "flex h-10 w-full rounded-sm border-2 border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:border-primary";
 
-const CATEGORIES = ["clip", "retainer", "nut", "bolt", "other"];
-
 const IMPORT_ALIASES = {
   partNumber: [
     "part number", "part no", "part num", "part#", "partnumber", "part",
@@ -27,7 +24,6 @@ const IMPORT_ALIASES = {
     "sku", "item number", "item no", "product code", "product id", "code",
   ],
   description: ["description", "desc", "part description", "item description", "name", "details"],
-  category: ["category", "cat", "type", "class", "group"],
   packQuantity: [
     "pack quantity", "pack qty", "packquantity", "pack_quantity",
     "quantity per pack", "qty per pack", "package quantity", "pack size",
@@ -113,7 +109,6 @@ const parsePrice = (value: string) => {
 
 export default function Parts() {
   const [search, setSearch] = useState("");
-  const [categoryFilter, setCategoryFilter] = useState("");
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [editingPart, setEditingPart] = useState<any>(null);
   const [isImporting, setIsImporting] = useState(false);
@@ -121,12 +116,12 @@ export default function Parts() {
 
   const queryClient = useQueryClient();
 
-  const { data: parts, isLoading } = useListParts({
-    search: search || undefined,
-    category: categoryFilter || undefined,
-  });
+  const { data: parts, isLoading } = useListParts({ search: search || undefined });
 
   const { data: suppliers } = useListSuppliers();
+  const auvecoSupplier = suppliers?.find(
+    (supplier) => supplier.name.trim().toLowerCase() === "auveco",
+  );
 
   const createPart = useCreatePart({
     mutation: {
@@ -167,7 +162,6 @@ export default function Parts() {
     const data = {
       partNumber: fd.get("partNumber") as string,
       description: fd.get("description") as string,
-      category: fd.get("category") as string,
       packQuantity: fd.get("packQuantity")
         ? Number(fd.get("packQuantity"))
         : null,
@@ -175,7 +169,7 @@ export default function Parts() {
       priceEach: (fd.get("priceEach") as string) || null,
       supplierId: fd.get("supplierId")
         ? Number(fd.get("supplierId"))
-        : null,
+        : auvecoSupplier?.id ?? null,
     };
 
     if (editingPart) {
@@ -224,7 +218,6 @@ export default function Parts() {
       const columns = {
         partNumber: findColumn(headers, IMPORT_ALIASES.partNumber),
         description: findColumn(headers, IMPORT_ALIASES.description),
-        category: findColumn(headers, IMPORT_ALIASES.category),
         packQuantity: findColumn(headers, IMPORT_ALIASES.packQuantity),
         packPrice: findColumn(headers, IMPORT_ALIASES.packPrice),
         priceEach: findColumn(headers, IMPORT_ALIASES.priceEach),
@@ -246,7 +239,6 @@ export default function Parts() {
           continue;
         }
 
-        const category = readCell(row, columns.category).toLowerCase();
         const packQuantity = parseNumber(readCell(row, columns.packQuantity));
         const packPrice = parsePrice(readCell(row, columns.packPrice));
         let priceEach = parsePrice(readCell(row, columns.priceEach));
@@ -261,16 +253,13 @@ export default function Parts() {
         const supplierName = readCell(row, columns.supplier).toLowerCase();
         const supplier = suppliers?.find(
           (candidate) => candidate.name.trim().toLowerCase() === supplierName,
-        );
+        ) ?? auvecoSupplier;
 
         try {
           await createPart.mutateAsync({
             data: {
               partNumber,
               description,
-              category: CATEGORIES.includes(category.toLowerCase())
-                ? category.toLowerCase()
-                : "other",
               packQuantity: packQuantity == null ? null : Math.round(packQuantity),
               packPrice,
               priceEach,
@@ -307,22 +296,6 @@ export default function Parts() {
         <div className="space-y-2">
           <Label htmlFor="partNumber">Part Number</Label>
           <Input id="partNumber" name="partNumber" defaultValue={part?.partNumber} required />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="category">Category</Label>
-          <select
-            id="category"
-            name="category"
-            defaultValue={part?.category || "clip"}
-            className={selectClass}
-            required
-          >
-            <option value="clip">Clip</option>
-            <option value="retainer">Retainer</option>
-            <option value="nut">Nut</option>
-            <option value="bolt">Bolt</option>
-            <option value="other">Other</option>
-          </select>
         </div>
         <div className="col-span-2 space-y-2">
           <Label htmlFor="description">Description</Label>
@@ -460,18 +433,6 @@ export default function Parts() {
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
-        <select
-          className={`${selectClass} max-w-[200px]`}
-          value={categoryFilter}
-          onChange={(e) => setCategoryFilter(e.target.value)}
-        >
-          <option value="">All Categories</option>
-          <option value="clip">Clip</option>
-          <option value="retainer">Retainer</option>
-          <option value="nut">Nut</option>
-          <option value="bolt">Bolt</option>
-          <option value="other">Other</option>
-        </select>
       </div>
 
       {/* Table */}
@@ -481,7 +442,6 @@ export default function Parts() {
             <TableRow>
               <TableHead>Part #</TableHead>
               <TableHead>Description</TableHead>
-              <TableHead>Category</TableHead>
               <TableHead>Supplier</TableHead>
               <TableHead className="text-right">Pack Qty</TableHead>
               <TableHead className="text-right">Pack Price</TableHead>
@@ -493,13 +453,13 @@ export default function Parts() {
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={9} className="text-center py-8">
+                <TableCell colSpan={8} className="text-center py-8">
                   Loading parts...
                 </TableCell>
               </TableRow>
             ) : parts?.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
+                <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
                   No parts found.
                 </TableCell>
               </TableRow>
@@ -511,9 +471,6 @@ export default function Parts() {
                   </TableCell>
                   <TableCell className="font-medium">
                     {part.description}
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="outline">{part.category}</Badge>
                   </TableCell>
                   <TableCell className="text-muted-foreground">
                     {part.supplierName || "—"}

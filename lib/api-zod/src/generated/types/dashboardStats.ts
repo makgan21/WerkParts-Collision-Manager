@@ -5,7 +5,6 @@
  * WerkParts - Collision Fastener Manager API
  * OpenAPI spec version: 0.1.0
  */
-import type { CategoryCount } from './categoryCount';
 import type { Invoice } from './invoice';
 
 export interface DashboardStats {
@@ -14,5 +13,4 @@ export interface DashboardStats {
   invoicesThisMonth: number;
   revenueThisMonth: string;
   recentInvoices: Invoice[];
-  partsByCategory: CategoryCount[];
 }

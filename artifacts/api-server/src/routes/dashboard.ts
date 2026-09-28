@@ -1,6 +1,6 @@
 import { Router, type IRouter } from "express";
-import { desc, gte, sql } from "drizzle-orm";
-import { db, invoicesTable, invoiceItemsTable, partsTable } from "@workspace/db";
+import { desc, gte } from "drizzle-orm";
+import { db, invoicesTable, invoiceItemsTable } from "@workspace/db";
 
 const router: IRouter = Router();
 
@@ -55,24 +55,12 @@ router.get("/dashboard", async (_req, res): Promise<void> => {
     createdAt: inv.createdAt.toISOString(),
   }));
 
-  // Parts by category
-  const parts = await db.select().from(partsTable);
-  const categoryMap: Record<string, number> = {};
-  for (const part of parts) {
-    categoryMap[part.category] = (categoryMap[part.category] ?? 0) + 1;
-  }
-  const partsByCategory = Object.entries(categoryMap).map(([category, count]) => ({
-    category,
-    count,
-  }));
-
   res.json({
     totalInvoices: allInvoices.length,
     totalRevenue: totalRevenue.toFixed(2),
     invoicesThisMonth: thisMonthInvoices.length,
     revenueThisMonth: revenueThisMonth.toFixed(2),
     recentInvoices: formattedRecent,
-    partsByCategory,
   });
 });
 

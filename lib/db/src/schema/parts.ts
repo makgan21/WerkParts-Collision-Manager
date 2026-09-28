@@ -7,7 +7,6 @@ export const partsTable = pgTable("parts", {
   id: serial("id").primaryKey(),
   partNumber: text("part_number").notNull(),
   description: text("description").notNull(),
-  category: text("category").notNull().default("other"),
 
   packQuantity: integer("pack_quantity"),
   packPrice: numeric("pack_price", { precision: 10, scale: 2 }),

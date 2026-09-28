@@ -9,7 +9,6 @@
 export interface PartUpdate {
   partNumber?: string;
   description?: string;
-  category?: string;
   /** @nullable */
   packQuantity?: number | null;
   /** @nullable */

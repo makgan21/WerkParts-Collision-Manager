@@ -17,8 +17,6 @@ export interface Part {
   id: number;
   partNumber: string;
   description: string;
-  /** clip | retainer | nut | bolt | other */
-  category: string;
   /** @nullable */
   packQuantity?: number | null;
   /**
@@ -41,7 +39,6 @@ export interface Part {
 export interface PartInput {
   partNumber: string;
   description: string;
-  category: string;
   /** @nullable */
   packQuantity?: number | null;
   /** @nullable */
@@ -55,7 +52,6 @@ export interface PartInput {
 export interface PartUpdate {
   partNumber?: string;
   description?: string;
-  category?: string;
   /** @nullable */
   packQuantity?: number | null;
   /** @nullable */
@@ -188,18 +184,12 @@ export interface InvoiceUpdate {
   items?: InvoiceItemInput[];
 }
 
-export interface CategoryCount {
-  category: string;
-  count: number;
-}
-
 export interface DashboardStats {
   totalInvoices: number;
   totalRevenue: string;
   invoicesThisMonth: number;
   revenueThisMonth: string;
   recentInvoices: Invoice[];
-  partsByCategory: CategoryCount[];
 }
 
 export interface Technician {
@@ -260,7 +250,6 @@ export interface CrossReferenceUpdate {
 
 export type ListPartsParams = {
 search?: string;
-category?: string;
 };
 
 export type ListInvoicesParams = {

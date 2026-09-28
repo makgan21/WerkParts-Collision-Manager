@@ -21,15 +21,13 @@ export const HealthCheckResponse = zod.object({
  * @summary List all parts
  */
 export const ListPartsQueryParams = zod.object({
-  "search": zod.coerce.string().optional(),
-  "category": zod.coerce.string().optional()
+  "search": zod.coerce.string().optional()
 })
 
 export const ListPartsResponseItem = zod.object({
   "id": zod.number(),
   "partNumber": zod.string(),
   "description": zod.string(),
-  "category": zod.string().describe('clip | retainer | nut | bolt | other'),
   "packQuantity": zod.number().nullish(),
   "packPrice": zod.string().nullish().describe('Pack price as string'),
   "priceEach": zod.string().nullish().describe('Cost per individual part as string'),
@@ -46,7 +44,6 @@ export const ListPartsResponse = zod.array(ListPartsResponseItem)
 export const CreatePartBody = zod.object({
   "partNumber": zod.string(),
   "description": zod.string(),
-  "category": zod.string(),
   "packQuantity": zod.number().nullish(),
   "packPrice": zod.string().nullish(),
   "priceEach": zod.string().nullish(),
@@ -57,7 +54,6 @@ export const CreatePartResponse = zod.object({
   "id": zod.number(),
   "partNumber": zod.string(),
   "description": zod.string(),
-  "category": zod.string().describe('clip | retainer | nut | bolt | other'),
   "packQuantity": zod.number().nullish(),
   "packPrice": zod.string().nullish().describe('Pack price as string'),
   "priceEach": zod.string().nullish().describe('Cost per individual part as string'),
@@ -78,7 +74,6 @@ export const GetPartResponse = zod.object({
   "id": zod.number(),
   "partNumber": zod.string(),
   "description": zod.string(),
-  "category": zod.string().describe('clip | retainer | nut | bolt | other'),
   "packQuantity": zod.number().nullish(),
   "packPrice": zod.string().nullish().describe('Pack price as string'),
   "priceEach": zod.string().nullish().describe('Cost per individual part as string'),
@@ -98,7 +93,6 @@ export const UpdatePartParams = zod.object({
 export const UpdatePartBody = zod.object({
   "partNumber": zod.string().optional(),
   "description": zod.string().optional(),
-  "category": zod.string().optional(),
   "packQuantity": zod.number().nullish(),
   "packPrice": zod.string().nullish(),
   "priceEach": zod.string().nullish(),
@@ -109,7 +103,6 @@ export const UpdatePartResponse = zod.object({
   "id": zod.number(),
   "partNumber": zod.string(),
   "description": zod.string(),
-  "category": zod.string().describe('clip | retainer | nut | bolt | other'),
   "packQuantity": zod.number().nullish(),
   "packPrice": zod.string().nullish().describe('Pack price as string'),
   "priceEach": zod.string().nullish().describe('Cost per individual part as string'),
@@ -604,10 +597,6 @@ export const GetDashboardResponse = zod.object({
   "totalAmount": zod.string(),
   "itemCount": zod.number().optional(),
   "createdAt": zod.string()
-})),
-  "partsByCategory": zod.array(zod.object({
-  "category": zod.string(),
-  "count": zod.number()
 }))
 })
 

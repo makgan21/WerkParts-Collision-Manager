@@ -36,7 +36,6 @@ router.get("/parts", async (req, res): Promise<void> => {
       id: partsTable.id,
       partNumber: partsTable.partNumber,
       description: partsTable.description,
-      category: partsTable.category,
       packQuantity: partsTable.packQuantity,
       packPrice: partsTable.packPrice,
       priceEach: partsTable.priceEach,
@@ -58,10 +57,6 @@ router.get("/parts", async (req, res): Promise<void> => {
     );
   }
 
-  if (query.data.category) {
-    rows = rows.filter((r) => r.category === query.data.category);
-  }
-
   res.json(rows.map(formatPart));
 });
 
@@ -78,7 +73,6 @@ router.post("/parts", async (req, res): Promise<void> => {
     .values({
       partNumber: parsed.data.partNumber,
       description: parsed.data.description,
-      category: parsed.data.category,
       packQuantity: parsed.data.packQuantity ?? null,
       packPrice: parsed.data.packPrice ?? null,
       priceEach: parsed.data.priceEach ?? null,
@@ -112,7 +106,6 @@ router.get("/parts/:id", async (req, res): Promise<void> => {
       id: partsTable.id,
       partNumber: partsTable.partNumber,
       description: partsTable.description,
-      category: partsTable.category,
       packQuantity: partsTable.packQuantity,
       packPrice: partsTable.packPrice,
       priceEach: partsTable.priceEach,
@@ -155,10 +148,6 @@ router.put("/parts/:id", async (req, res): Promise<void> => {
 
   if (parsed.data.description != null) {
     updateData.description = parsed.data.description;
-  }
-
-  if (parsed.data.category != null) {
-    updateData.category = parsed.data.category;
   }
 
   if ("packQuantity" in parsed.data) {

@@ -8,5 +8,4 @@
 
 export type ListPartsParams = {
 search?: string;
-category?: string;
 };
