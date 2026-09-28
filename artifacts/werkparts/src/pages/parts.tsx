@@ -20,6 +20,95 @@ const selectClass =
 
 const CATEGORIES = ["clip", "retainer", "nut", "bolt", "other"];
 
+const IMPORT_ALIASES = {
+  partNumber: [
+    "part number", "part no", "part num", "part#", "partnumber", "part",
+    "sku", "item number", "item no", "product code", "product id", "code",
+  ],
+  description: ["description", "desc", "part description", "item description", "name", "details"],
+  category: ["category", "cat", "type", "class", "group"],
+  packQuantity: [
+    "pack quantity", "pack qty", "packquantity", "pack_quantity",
+    "quantity per pack", "qty per pack", "package quantity", "pack size",
+  ],
+  packPrice: [
+    "pack price", "packprice", "pack_price", "price per pack",
+    "package price", "case price", "pack cost", "case cost",
+  ],
+  priceEach: [
+    "price each", "priceeach", "price_each", "unit price", "unit cost",
+    "cost each", "cost per unit", "cost per part", "our cost", "cost",
+    "purchase price", "buy price",
+  ],
+  customerPrice: [
+    "customer price", "retail price", "selling price", "sell price",
+    "msrp", "msrp price", "list price",
+  ],
+  supplier: ["supplier", "vendor", "manufacturer"],
+} as const;
+
+const normalizeHeader = (value: unknown) =>
+  String(value ?? "")
+    .replace(/\u00a0/g, " ")
+    .toLowerCase()
+    .replace(/[_./-]+/g, " ")
+    .replace(/[^a-z0-9#]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+const compactHeader = (value: unknown) => normalizeHeader(value).replace(/[^a-z0-9]/g, "");
+
+const findColumn = (headers: string[], aliases: readonly string[]) => {
+  const exactAliases = aliases.map(compactHeader);
+  const exactIndex = headers.findIndex((header) => exactAliases.includes(compactHeader(header)));
+  if (exactIndex >= 0) return exactIndex;
+
+  return headers.findIndex((header) => {
+    const normalized = compactHeader(header);
+    return normalized.length > 2 && aliases.some((alias) => {
+      const compactAlias = compactHeader(alias);
+      return normalized.includes(compactAlias) || compactAlias.includes(normalized);
+    });
+  });
+};
+
+const findHeaderRow = (rows: unknown[][]) => {
+  const candidates: { index: number; headers: string[]; score: number }[] = [];
+
+  rows.slice(0, 20).forEach((row, index) => {
+    const headers = row.map(normalizeHeader);
+    const matchedFields = Object.values(IMPORT_ALIASES).filter(
+      (aliases) => findColumn(headers, aliases) >= 0,
+    ).length;
+    const hasPartNumber = findColumn(headers, IMPORT_ALIASES.partNumber) >= 0;
+    const hasDescription = findColumn(headers, IMPORT_ALIASES.description) >= 0;
+    const score = matchedFields + (hasPartNumber ? 4 : 0) + (hasDescription ? 4 : 0);
+
+    candidates.push({ index, headers, score });
+  });
+
+  const best = candidates.sort((a, b) => b.score - a.score)[0];
+  if (!best || best.score < 6 || findColumn(best.headers, IMPORT_ALIASES.partNumber) < 0) {
+    return null;
+  }
+  return best;
+};
+
+const readCell = (row: unknown[], index: number) =>
+  index >= 0 ? String(row[index] ?? "").trim() : "";
+
+const parseNumber = (value: string) => {
+  const cleaned = value.replace(/[$€£,\s]/g, "").replace(/[^\d.-]/g, "");
+  if (!cleaned || cleaned === "-" || cleaned === ".") return null;
+  const parsed = Number(cleaned);
+  return Number.isFinite(parsed) ? parsed : null;
+};
+
+const parsePrice = (value: string) => {
+  const parsed = parseNumber(value);
+  return parsed == null ? null : parsed.toFixed(2);
+};
+
 export default function Parts() {
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("");
@@ -94,68 +183,83 @@ export default function Parts() {
     }
   };
 
-  // ── CSV Import ────────────────────────────────────────────────────────────────
-  const handleCSVImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  // ── CSV / Excel Import ────────────────────────────────────────────────────────
+  const handleFileImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     e.target.value = ""; // reset so same file can be re-imported
     setIsImporting(true);
 
     try {
-      const text = await file.text();
-      const lines = text.split(/\r?\n/).filter((l) => l.trim());
-      if (lines.length < 2) {
-        toast.error("CSV must have a header row and at least one data row.");
+      const XLSX = await import("xlsx");
+      const workbook = XLSX.read(await file.arrayBuffer(), {
+        type: "array",
+        cellDates: false,
+        raw: false,
+      });
+
+      const sheets = workbook.SheetNames.map((name) => {
+        const rows = XLSX.utils.sheet_to_json(workbook.Sheets[name], {
+          header: 1,
+          defval: "",
+          raw: false,
+        }) as unknown[][];
+        return { name, rows, header: findHeaderRow(rows) };
+      });
+      const selectedSheet = sheets
+        .filter((sheet) => sheet.header)
+        .sort((a, b) => {
+          const scoreDifference = (b.header?.score ?? 0) - (a.header?.score ?? 0);
+          return scoreDifference || b.rows.length - a.rows.length;
+        })[0];
+
+      if (!selectedSheet?.header) {
+        toast.error("Could not identify Part Number and Description columns in this file.");
         return;
       }
 
-      const headers = lines[0]
-        .toLowerCase()
-        .split(",")
-        .map((h) => h.trim().replace(/^"|"$/g, ""));
-
-      const col = (row: string[], names: string[]) => {
-        for (const name of names) {
-          const idx = headers.indexOf(name);
-          if (idx >= 0) return row[idx]?.trim().replace(/^"|"$/g, "") || "";
-        }
-        return "";
+      const { index: headerIndex, headers } = selectedSheet.header;
+      const columns = {
+        partNumber: findColumn(headers, IMPORT_ALIASES.partNumber),
+        description: findColumn(headers, IMPORT_ALIASES.description),
+        category: findColumn(headers, IMPORT_ALIASES.category),
+        packQuantity: findColumn(headers, IMPORT_ALIASES.packQuantity),
+        packPrice: findColumn(headers, IMPORT_ALIASES.packPrice),
+        priceEach: findColumn(headers, IMPORT_ALIASES.priceEach),
+        customerPrice: findColumn(headers, IMPORT_ALIASES.customerPrice),
+        supplier: findColumn(headers, IMPORT_ALIASES.supplier),
       };
 
       let success = 0;
       let errors = 0;
 
-      for (const line of lines.slice(1)) {
-        if (!line.trim()) continue;
-        const values = line.split(",");
-        const partNumber = col(values, ["part number", "part#", "partnumber", "part_number", "sku"]);
-        const description = col(values, ["description", "desc", "name"]);
-        const category = col(values, ["category", "cat", "type"]) || "other";
-        const packQuantity = col(values, [
-          "pack quantity",
-          "pack qty",
-          "quantity",
-          "packquantity",
-          "pack_quantity",
-        ]);
+      for (const row of selectedSheet.rows.slice(headerIndex + 1)) {
+        if (!row.some((cell) => String(cell ?? "").trim())) continue;
 
-        const packPrice = col(values, [
-          "pack price",
-          "packprice",
-          "pack_price",
-          "price",
-        ]);
-
-        const priceEach = col(values, [
-          "price each",
-          "priceeach",
-          "price_each",
-        ]);
+        const partNumber = readCell(row, columns.partNumber);
+        const description = readCell(row, columns.description);
 
         if (!partNumber || !description) {
           errors++;
           continue;
         }
+
+        const category = readCell(row, columns.category).toLowerCase();
+        const packQuantity = parseNumber(readCell(row, columns.packQuantity));
+        const packPrice = parsePrice(readCell(row, columns.packPrice));
+        let priceEach = parsePrice(readCell(row, columns.priceEach));
+
+        // If a file only provides retail/customer pricing, convert it back to
+        // the stored cost so the existing Customer Price calculation remains consistent.
+        if (!priceEach) {
+          const customerPrice = parseNumber(readCell(row, columns.customerPrice));
+          if (customerPrice != null) priceEach = (customerPrice * 0.6).toFixed(4);
+        }
+
+        const supplierName = readCell(row, columns.supplier).toLowerCase();
+        const supplier = suppliers?.find(
+          (candidate) => candidate.name.trim().toLowerCase() === supplierName,
+        );
 
         try {
           await createPart.mutateAsync({
@@ -165,9 +269,10 @@ export default function Parts() {
               category: CATEGORIES.includes(category.toLowerCase())
                 ? category.toLowerCase()
                 : "other",
-              packQuantity: packQuantity ? Number(packQuantity) : null,
-              packPrice: packPrice || null,
-              priceEach: priceEach || null,
+              packQuantity: packQuantity == null ? null : Math.round(packQuantity),
+              packPrice,
+              priceEach,
+              supplierId: supplier?.id ?? null,
             },
           });
           success++;
@@ -177,10 +282,17 @@ export default function Parts() {
       }
 
       queryClient.invalidateQueries({ queryKey: getListPartsQueryKey() });
-      if (success > 0) toast.success(`Imported ${success} part${success !== 1 ? "s" : ""}${errors > 0 ? ` (${errors} skipped)` : ""}`);
-      else toast.error(`Import failed — ${errors} row${errors !== 1 ? "s" : ""} had errors. Check Part #, Description, and Price columns.`);
-    } catch (err) {
-      toast.error("Failed to read CSV file.");
+      if (success > 0) {
+        toast.success(
+          `Imported ${success} part${success !== 1 ? "s" : ""}` +
+          (errors > 0 ? ` (${errors} skipped)` : "") +
+          ` from ${selectedSheet.name}`,
+        );
+      } else {
+        toast.error(`Import failed — ${errors} row${errors !== 1 ? "s" : ""} had errors.`);
+      }
+    } catch {
+      toast.error("Could not read this file. Please choose a CSV, XLS, or XLSX file.");
     } finally {
       setIsImporting(false);
     }
@@ -302,13 +414,13 @@ export default function Parts() {
           <p className="text-muted-foreground">Manage fasteners, clips, and pricing.</p>
         </div>
         <div className="flex gap-2">
-          {/* CSV Import */}
+          {/* CSV / Excel Import */}
           <input
             ref={csvInputRef}
             type="file"
-            accept=".csv,text/csv"
+            accept=".csv,.xls,.xlsx,text/csv,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
             className="hidden"
-            onChange={handleCSVImport}
+            onChange={handleFileImport}
           />
           <Button
             variant="outline"
@@ -317,7 +429,7 @@ export default function Parts() {
             onClick={() => csvInputRef.current?.click()}
           >
             <Upload className="w-4 h-4" />
-            {isImporting ? "Importing…" : "Import CSV"}
+            {isImporting ? "Importing…" : "Import File"}
           </Button>
 
           {/* Add Part */}
@@ -327,11 +439,11 @@ export default function Parts() {
         </div>
       </div>
 
-      {/* CSV format hint */}
+      {/* Import format hint */}
       <p className="text-xs text-muted-foreground -mt-4">
-        CSV columns:{" "}
+        Import CSV, XLS, or XLSX files. Required columns are detected automatically:{" "}
         <span className="font-mono">
-          Part Number, Description, Category, Pack Quantity, Pack Price, Price Each
+          Part Number, Description
         </span>
       </p>
 
