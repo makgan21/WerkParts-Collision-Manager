@@ -19,18 +19,18 @@ export interface Part {
   description: string;
   /** clip | retainer | nut | bolt | other */
   category: string;
-  /** Retail/OEM price as string */
-  unitPrice: string;
+  /** @nullable */
+  packQuantity?: number | null;
   /**
-     * MSRP price as string
+     * Pack price as string
      * @nullable
      */
-  msrpPrice?: string | null;
+  packPrice?: string | null;
   /**
-     * Our cost as string
+     * Cost per individual part as string
      * @nullable
      */
-  ourCost?: string | null;
+  priceEach?: string | null;
   /** @nullable */
   supplierId?: number | null;
   /** @nullable */
@@ -42,11 +42,12 @@ export interface PartInput {
   partNumber: string;
   description: string;
   category: string;
-  unitPrice: string;
   /** @nullable */
-  msrpPrice?: string | null;
+  packQuantity?: number | null;
   /** @nullable */
-  ourCost?: string | null;
+  packPrice?: string | null;
+  /** @nullable */
+  priceEach?: string | null;
   /** @nullable */
   supplierId?: number | null;
 }
@@ -55,11 +56,12 @@ export interface PartUpdate {
   partNumber?: string;
   description?: string;
   category?: string;
-  unitPrice?: string;
   /** @nullable */
-  msrpPrice?: string | null;
+  packQuantity?: number | null;
   /** @nullable */
-  ourCost?: string | null;
+  packPrice?: string | null;
+  /** @nullable */
+  priceEach?: string | null;
   /** @nullable */
   supplierId?: number | null;
 }

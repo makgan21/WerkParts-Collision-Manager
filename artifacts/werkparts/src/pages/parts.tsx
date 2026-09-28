@@ -10,23 +10,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import {
-  Search,
-  Plus,
-  Edit2,
-  Trash2,
-  Upload,
-  Link2,
-  ChevronRight,
-  ChevronDown,
-} from "lucide-react";
+import { Search, Plus, Edit2, Trash2, Upload } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
-import {
-  createCrossReference,
-  listCrossReferencesByPart,
-} from "@workspace/api-client-react";
 
 const selectClass =
   "flex h-10 w-full rounded-sm border-2 border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:border-primary";
@@ -38,34 +25,10 @@ export default function Parts() {
   const [categoryFilter, setCategoryFilter] = useState("");
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [editingPart, setEditingPart] = useState<any>(null);
-  const [referencesPart, setReferencesPart] = useState<any>(null);
-  const [isReferencesOpen, setIsReferencesOpen] = useState(false);
-  const [isAddingReference, setIsAddingReference] = useState(false);
-
-  const emptyReference = {
-    manufacturer: "",
-    partNumber: "",
-    description: "",
-    price: "",
-    notes: "",
-  };
-
-  const [newReference, setNewReference] = useState(emptyReference);
-  const [crossReferences, setCrossReferences] = useState<any[]>([]);
   const [isImporting, setIsImporting] = useState(false);
   const csvInputRef = useRef<HTMLInputElement>(null);
 
   const queryClient = useQueryClient();
-
-  const loadCrossReferences = async (partId: number) => {
-    try {
-      const refs = await listCrossReferencesByPart(partId);
-      setCrossReferences(refs);
-    } catch (err) {
-      console.error(err);
-      toast.error("Failed to load cross references.");
-    }
-  };
 
   const { data: parts, isLoading } = useListParts({
     search: search || undefined,
@@ -109,18 +72,26 @@ export default function Parts() {
   const handleSave = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const fd = new FormData(e.currentTarget);
+
     const data = {
       partNumber: fd.get("partNumber") as string,
       description: fd.get("description") as string,
       category: fd.get("category") as string,
-      unitPrice: fd.get("unitPrice") as string,
-      msrpPrice: (fd.get("msrpPrice") as string) || null,
-      ourCost: (fd.get("ourCost") as string) || null,
-      supplierId: fd.get("supplierId") ? Number(fd.get("supplierId")) : null,
+      packQuantity: fd.get("packQuantity")
+        ? Number(fd.get("packQuantity"))
+        : null,
+      packPrice: (fd.get("packPrice") as string) || null,
+      priceEach: (fd.get("priceEach") as string) || null,
+      supplierId: fd.get("supplierId")
+        ? Number(fd.get("supplierId"))
+        : null,
     };
 
-    if (editingPart) updatePart.mutate({ id: editingPart.id, data });
-    else createPart.mutate({ data });
+    if (editingPart) {
+      updatePart.mutate({ id: editingPart.id, data });
+    } else {
+      createPart.mutate({ data });
+    }
   };
 
   // ── CSV Import ────────────────────────────────────────────────────────────────
@@ -160,21 +131,43 @@ export default function Parts() {
         const partNumber = col(values, ["part number", "part#", "partnumber", "part_number", "sku"]);
         const description = col(values, ["description", "desc", "name"]);
         const category = col(values, ["category", "cat", "type"]) || "other";
-        const unitPrice = col(values, ["unit price", "unitprice", "price", "unit_price", "retail"]);
-        const msrpPrice = col(values, ["msrp", "msrp price", "msrpprice", "msrp_price"]) || null;
-        const ourCost = col(values, ["our cost", "ourcost", "cost", "our_cost", "dealer cost"]) || null;
+        const packQuantity = col(values, [
+          "pack quantity",
+          "pack qty",
+          "quantity",
+          "packquantity",
+          "pack_quantity",
+        ]);
 
-        if (!partNumber || !description || !unitPrice) { errors++; continue; }
+        const packPrice = col(values, [
+          "pack price",
+          "packprice",
+          "pack_price",
+          "price",
+        ]);
+
+        const priceEach = col(values, [
+          "price each",
+          "priceeach",
+          "price_each",
+        ]);
+
+        if (!partNumber || !description) {
+          errors++;
+          continue;
+        }
 
         try {
           await createPart.mutateAsync({
             data: {
               partNumber,
               description,
-              category: CATEGORIES.includes(category.toLowerCase()) ? category.toLowerCase() : "other",
-              unitPrice,
-              msrpPrice: msrpPrice || null,
-              ourCost: ourCost || null,
+              category: CATEGORIES.includes(category.toLowerCase())
+                ? category.toLowerCase()
+                : "other",
+              packQuantity: packQuantity ? Number(packQuantity) : null,
+              packPrice: packPrice || null,
+              priceEach: priceEach || null,
             },
           });
           success++;
@@ -222,16 +215,54 @@ export default function Parts() {
           <Input id="description" name="description" defaultValue={part?.description} required />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="unitPrice">Retail / OEM Price</Label>
-          <Input id="unitPrice" name="unitPrice" type="number" step="0.01" defaultValue={part?.unitPrice} required placeholder="0.00" />
+          <Label htmlFor="packQuantity">Pack Quantity</Label>
+          <Input
+            id="packQuantity"
+            name="packQuantity"
+            type="number"
+            step="1"
+            min="1"
+            defaultValue={part?.packQuantity ?? ""}
+            placeholder="0"
+          />
         </div>
+
         <div className="space-y-2">
-          <Label htmlFor="msrpPrice">MSRP Price</Label>
-          <Input id="msrpPrice" name="msrpPrice" type="number" step="0.01" defaultValue={part?.msrpPrice || ""} placeholder="0.00 (optional)" />
+          <Label htmlFor="packPrice">Pack Price</Label>
+          <Input
+            id="packPrice"
+            name="packPrice"
+            type="number"
+            step="0.01"
+            min="0"
+            defaultValue={part?.packPrice ?? ""}
+            placeholder="0.00"
+          />
         </div>
+
         <div className="space-y-2">
-          <Label htmlFor="ourCost">Our Cost</Label>
-          <Input id="ourCost" name="ourCost" type="number" step="0.01" defaultValue={part?.ourCost || ""} placeholder="0.00 (optional)" />
+          <Label htmlFor="priceEach">Price Each</Label>
+          <Input
+            id="priceEach"
+            name="priceEach"
+            type="number"
+            step="0.0001"
+            min="0"
+            defaultValue={part?.priceEach ?? ""}
+            placeholder="0.00"
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label>Customer Price</Label>
+          <div className="flex h-10 w-full items-center rounded-sm border-2 border-input bg-muted px-3 text-sm">
+            {part?.priceEach
+              ? formatCurrency(Number(part.priceEach) / 0.60)
+              : "—"}
+          </div>
+          <p className="text-xs text-muted-foreground">
+            40% gross profit margin
+          </p>
         </div>
         <div className="space-y-2">
           <Label htmlFor="supplierId">Supplier</Label>
@@ -298,7 +329,10 @@ export default function Parts() {
 
       {/* CSV format hint */}
       <p className="text-xs text-muted-foreground -mt-4">
-        CSV columns: <span className="font-mono">Part Number, Description, Category, Unit Price, MSRP Price, Our Cost</span>
+        CSV columns:{" "}
+        <span className="font-mono">
+          Part Number, Description, Category, Pack Quantity, Pack Price, Price Each
+        </span>
       </p>
 
       {/* Filters */}
@@ -335,61 +369,72 @@ export default function Parts() {
               <TableHead>Description</TableHead>
               <TableHead>Category</TableHead>
               <TableHead>Supplier</TableHead>
-              <TableHead className="text-right">Retail / OEM</TableHead>
-              <TableHead className="text-right">MSRP</TableHead>
-              <TableHead className="text-right">Our Cost</TableHead>
+              <TableHead className="text-right">Pack Qty</TableHead>
+              <TableHead className="text-right">Pack Price</TableHead>
+              <TableHead className="text-right">Price Each</TableHead>
+              <TableHead className="text-right">Customer Price</TableHead>
               <TableHead className="w-[90px]"></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={8} className="text-center py-8">Loading parts...</TableCell>
+                <TableCell colSpan={9} className="text-center py-8">
+                  Loading parts...
+                </TableCell>
               </TableRow>
             ) : parts?.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+                <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
                   No parts found.
                 </TableCell>
               </TableRow>
             ) : (
               parts?.map((part) => (
                 <TableRow key={part.id}>
-                  <TableCell className="font-mono font-bold text-primary">{part.partNumber}</TableCell>
-                  <TableCell className="font-medium">{part.description}</TableCell>
+                  <TableCell className="font-mono font-bold text-primary">
+                    {part.partNumber}
+                  </TableCell>
+                  <TableCell className="font-medium">
+                    {part.description}
+                  </TableCell>
                   <TableCell>
                     <Badge variant="outline">{part.category}</Badge>
                   </TableCell>
-                  <TableCell className="text-muted-foreground">{part.supplierName || "—"}</TableCell>
-                  <TableCell className="text-right font-mono">{formatCurrency(part.unitPrice)}</TableCell>
-                  <TableCell className="text-right font-mono text-muted-foreground">
-                    {part.msrpPrice ? formatCurrency(part.msrpPrice) : "—"}
+                  <TableCell className="text-muted-foreground">
+                    {part.supplierName || "—"}
                   </TableCell>
-                  <TableCell className="text-right font-mono text-muted-foreground">
-                    {part.ourCost ? formatCurrency(part.ourCost) : "—"}
+                  <TableCell className="text-right font-mono">
+                    {part.packQuantity ?? "—"}
+                  </TableCell>
+                  <TableCell className="text-right font-mono">
+                    {part.packPrice ? formatCurrency(part.packPrice) : "—"}
+                  </TableCell>
+                  <TableCell className="text-right font-mono">
+                    {part.priceEach ? formatCurrency(part.priceEach) : "—"}
+                  </TableCell>
+                  <TableCell className="text-right font-mono font-bold">
+                    {part.priceEach
+                      ? formatCurrency(Number(part.priceEach) / 0.60)
+                      : "—"}
                   </TableCell>
                   <TableCell>
                     <div className="flex justify-end gap-1">
-                      <Button variant="ghost" size="icon" onClick={() => setEditingPart(part)}>
-                        <Edit2 className="w-4 h-4" />
-                      </Button>
                       <Button
                         variant="ghost"
                         size="icon"
-                        onClick={async () => {
-                            setReferencesPart(part);
-                            await loadCrossReferences(part.id);
-                            setIsReferencesOpen(true);
-                        }}
+                        onClick={() => setEditingPart(part)}
                       >
-                        <Link2 className="w-4 h-4" />
+                        <Edit2 className="w-4 h-4" />
                       </Button>
                       <Button
                         variant="ghost"
                         size="icon"
                         className="text-destructive hover:text-destructive hover:bg-destructive/10"
                         onClick={() => {
-                          if (confirm("Delete this part?")) deletePart.mutate({ id: part.id });
+                          if (confirm("Delete this part?")) {
+                            deletePart.mutate({ id: part.id });
+                          }
                         }}
                       >
                         <Trash2 className="w-4 h-4" />
@@ -420,220 +465,6 @@ export default function Parts() {
             <DialogTitle>Edit Part: {editingPart?.partNumber}</DialogTitle>
           </DialogHeader>
           {editingPart && <PartForm part={editingPart} />}
-        </DialogContent>
-      </Dialog>
-      {/* Cross References Dialog */}
-      <Dialog
-        open={isReferencesOpen}
-        onOpenChange={(open) => {
-          setIsReferencesOpen(open);
-          if (!open) setReferencesPart(null);
-        }}
-      >
-        <DialogContent className="max-w-xl">
-          <DialogHeader>
-            <DialogTitle>
-              Cross References - {referencesPart?.partNumber}
-            </DialogTitle>
-          </DialogHeader>
-
-          <div className="py-8 text-center space-y-6">
-            {crossReferences.length === 0 ? (
-              <p className="text-muted-foreground">
-                No cross references have been added.
-              </p>
-            ) : (
-              <div className="space-y-2 text-left">
-                {crossReferences.map((ref) => (
-                  <Card key={ref.id} className="p-3">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <div className="font-semibold">
-                          {ref.referenceType}
-                        </div>
-
-                        <div className="font-mono text-sm">
-                          {ref.referenceNumber}
-                        </div>
-
-                        {ref.referenceDescription && (
-                          <div className="text-sm text-muted-foreground">
-                            {ref.referenceDescription}
-                          </div>
-                        )}
-
-                        {ref.notes && (
-                          <div className="text-xs text-muted-foreground mt-1">
-                            {ref.notes}
-                          </div>
-                        )}
-                      </div>
-
-                      {ref.referencePrice && (
-                        <Badge variant="secondary">
-                          ${ref.referencePrice}
-                        </Badge>
-                      )}
-                    </div>
-                  </Card>
-                ))}
-              </div>
-            )}
-
-            <Button
-              variant="outline"
-              className="w-full justify-start gap-2"
-              onClick={() => setIsAddingReference(!isAddingReference)}
-            >
-              {isAddingReference ? (
-                <ChevronDown className="w-4 h-4" />
-              ) : (
-                <ChevronRight className="w-4 h-4" />
-              )}
-
-              Add Reference
-            </Button>
-            {isAddingReference && (
-              <div className="mt-6 space-y-4 border-t pt-4">
-
-                <div className="space-y-2">
-                  <Label>Manufacturer</Label>
-                  <Input
-                    value={newReference.manufacturer}
-                    onChange={(e) =>
-                      setNewReference({
-                        ...newReference,
-                        manufacturer: e.target.value,
-                      })
-                    }
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label>Part Number</Label>
-                  <Input
-                    value={newReference.partNumber}
-                    onChange={(e) =>
-                      setNewReference({
-                        ...newReference,
-                        partNumber: e.target.value,
-                      })
-                    }
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label>Description</Label>
-                  <Input
-                    value={newReference.description}
-                    onChange={(e) =>
-                      setNewReference({
-                        ...newReference,
-                        description: e.target.value,
-                      })
-                    }
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label>Price</Label>
-                  <Input
-                    type="number"
-                    step="0.01"
-                    value={newReference.price}
-                    onChange={(e) =>
-                      setNewReference({
-                        ...newReference,
-                        price: e.target.value,
-                      })
-                    }
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label>Notes</Label>
-                  <Input
-                    value={newReference.notes}
-                    onChange={(e) =>
-                      setNewReference({
-                        ...newReference,
-                        notes: e.target.value,
-                      })
-                    }
-                  />
-                </div>
-
-                <div className="flex justify-end gap-2">
-
-                  <Button
-                    variant="outline"
-                    onClick={() => {
-                      setIsAddingReference(false);
-                      setNewReference(emptyReference);
-                    }}
-                  >
-                    Cancel
-                  </Button>
-
-                  <Button
-                    onClick={async () => {
-                      console.log("SAVE CLICKED");
-
-                      if (!referencesPart) {
-                        console.log("No referencesPart");
-                        return;
-                      }
-
-                      try {
-                        console.log({
-                          partId: referencesPart.id,
-                          referenceType: newReference.manufacturer,
-                          referenceNumber: newReference.partNumber,
-                          referenceDescription: newReference.description,
-                          referencePrice: newReference.price,
-                          notes: newReference.notes,
-                        });
-
-                        const result = await createCrossReference({
-                          partId: referencesPart.id,
-                          referenceType: newReference.manufacturer,
-                          referenceNumber: newReference.partNumber,
-                          referenceDescription: newReference.description || null,
-                          referencePrice: newReference.price || null,
-                          notes: newReference.notes || null,
-                        });
-
-                        console.log("SUCCESS!", result);
-
-                        setNewReference(emptyReference);
-                        setIsAddingReference(false);
-
-                        await loadCrossReferences(referencesPart.id);
-                      } catch (err) {
-                        console.error("SAVE FAILED", err);
-                      }
-                    }}
-                  >
-                    Save
-                  </Button>
-
-                </div>
-
-              </div>
-            )}
-          </div>
-
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => {
-                setIsReferencesOpen(false);
-                setReferencesPart(null);
-              }}
-            >
-              Close
-            </Button>
-          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

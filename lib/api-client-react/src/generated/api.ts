@@ -748,6 +748,149 @@ export function useListCrossReferencesByPart<TData = Awaited<ReturnType<typeof l
 
 
 
+export const getUpdateCrossReferenceUrl = (id: number,) => {
+
+
+
+
+  return `/api/cross-references/item/${id}`
+}
+
+/**
+ * @summary Update a cross reference
+ */
+export const updateCrossReference = async (id: number,
+    crossReferenceInput: CrossReferenceInput, options?: Parameters<typeof customFetch>[1]): Promise<CrossReference> => {
+
+  return customFetch<CrossReference>(getUpdateCrossReferenceUrl(id),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(crossReferenceInput)
+  }
+);}
+
+
+
+
+
+export const getUpdateCrossReferenceMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateCrossReference>>, TError,{id: number;data: BodyType<CrossReferenceInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateCrossReference>>, TError,{id: number;data: BodyType<CrossReferenceInput>}, TContext> => {
+
+const mutationKey = ['updateCrossReference'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateCrossReference>>, {id: number;data: BodyType<CrossReferenceInput>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  updateCrossReference(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateCrossReferenceMutationResult = NonNullable<Awaited<ReturnType<typeof updateCrossReference>>>
+    export type UpdateCrossReferenceMutationBody = BodyType<CrossReferenceInput>
+    export type UpdateCrossReferenceMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Update a cross reference
+ */
+export const useUpdateCrossReference = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateCrossReference>>, TError,{id: number;data: BodyType<CrossReferenceInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateCrossReference>>,
+        TError,
+        {id: number;data: BodyType<CrossReferenceInput>},
+        TContext
+      > => {
+      return useMutation(getUpdateCrossReferenceMutationOptions(options));
+    }
+
+export const getDeleteCrossReferenceUrl = (id: number,) => {
+
+
+
+
+  return `/api/cross-references/item/${id}`
+}
+
+/**
+ * @summary Delete a cross reference
+ */
+export const deleteCrossReference = async (id: number, options?: Parameters<typeof customFetch>[1]): Promise<void> => {
+
+  return customFetch<void>(getDeleteCrossReferenceUrl(id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+
+export const getDeleteCrossReferenceMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteCrossReference>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteCrossReference>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['deleteCrossReference'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteCrossReference>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  deleteCrossReference(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteCrossReferenceMutationResult = NonNullable<Awaited<ReturnType<typeof deleteCrossReference>>>
+
+    export type DeleteCrossReferenceMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Delete a cross reference
+ */
+export const useDeleteCrossReference = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteCrossReference>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof deleteCrossReference>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+      return useMutation(getDeleteCrossReferenceMutationOptions(options));
+    }
+
 export const getListSuppliersUrl = () => {
 
 

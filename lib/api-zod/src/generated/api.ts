@@ -30,9 +30,9 @@ export const ListPartsResponseItem = zod.object({
   "partNumber": zod.string(),
   "description": zod.string(),
   "category": zod.string().describe('clip | retainer | nut | bolt | other'),
-  "unitPrice": zod.string().describe('Retail\/OEM price as string'),
-  "msrpPrice": zod.string().nullish().describe('MSRP price as string'),
-  "ourCost": zod.string().nullish().describe('Our cost as string'),
+  "packQuantity": zod.number().nullish(),
+  "packPrice": zod.string().nullish().describe('Pack price as string'),
+  "priceEach": zod.string().nullish().describe('Cost per individual part as string'),
   "supplierId": zod.number().nullish(),
   "supplierName": zod.string().nullish(),
   "createdAt": zod.string()
@@ -47,9 +47,9 @@ export const CreatePartBody = zod.object({
   "partNumber": zod.string(),
   "description": zod.string(),
   "category": zod.string(),
-  "unitPrice": zod.string(),
-  "msrpPrice": zod.string().nullish(),
-  "ourCost": zod.string().nullish(),
+  "packQuantity": zod.number().nullish(),
+  "packPrice": zod.string().nullish(),
+  "priceEach": zod.string().nullish(),
   "supplierId": zod.number().nullish()
 })
 
@@ -58,9 +58,9 @@ export const CreatePartResponse = zod.object({
   "partNumber": zod.string(),
   "description": zod.string(),
   "category": zod.string().describe('clip | retainer | nut | bolt | other'),
-  "unitPrice": zod.string().describe('Retail\/OEM price as string'),
-  "msrpPrice": zod.string().nullish().describe('MSRP price as string'),
-  "ourCost": zod.string().nullish().describe('Our cost as string'),
+  "packQuantity": zod.number().nullish(),
+  "packPrice": zod.string().nullish().describe('Pack price as string'),
+  "priceEach": zod.string().nullish().describe('Cost per individual part as string'),
   "supplierId": zod.number().nullish(),
   "supplierName": zod.string().nullish(),
   "createdAt": zod.string()
@@ -79,9 +79,9 @@ export const GetPartResponse = zod.object({
   "partNumber": zod.string(),
   "description": zod.string(),
   "category": zod.string().describe('clip | retainer | nut | bolt | other'),
-  "unitPrice": zod.string().describe('Retail\/OEM price as string'),
-  "msrpPrice": zod.string().nullish().describe('MSRP price as string'),
-  "ourCost": zod.string().nullish().describe('Our cost as string'),
+  "packQuantity": zod.number().nullish(),
+  "packPrice": zod.string().nullish().describe('Pack price as string'),
+  "priceEach": zod.string().nullish().describe('Cost per individual part as string'),
   "supplierId": zod.number().nullish(),
   "supplierName": zod.string().nullish(),
   "createdAt": zod.string()
@@ -99,9 +99,9 @@ export const UpdatePartBody = zod.object({
   "partNumber": zod.string().optional(),
   "description": zod.string().optional(),
   "category": zod.string().optional(),
-  "unitPrice": zod.string().optional(),
-  "msrpPrice": zod.string().nullish(),
-  "ourCost": zod.string().nullish(),
+  "packQuantity": zod.number().nullish(),
+  "packPrice": zod.string().nullish(),
+  "priceEach": zod.string().nullish(),
   "supplierId": zod.number().nullish()
 })
 
@@ -110,9 +110,9 @@ export const UpdatePartResponse = zod.object({
   "partNumber": zod.string(),
   "description": zod.string(),
   "category": zod.string().describe('clip | retainer | nut | bolt | other'),
-  "unitPrice": zod.string().describe('Retail\/OEM price as string'),
-  "msrpPrice": zod.string().nullish().describe('MSRP price as string'),
-  "ourCost": zod.string().nullish().describe('Our cost as string'),
+  "packQuantity": zod.number().nullish(),
+  "packPrice": zod.string().nullish().describe('Pack price as string'),
+  "priceEach": zod.string().nullish().describe('Cost per individual part as string'),
   "supplierId": zod.number().nullish(),
   "supplierName": zod.string().nullish(),
   "createdAt": zod.string()
@@ -184,6 +184,43 @@ export const ListCrossReferencesByPartResponseItem = zod.object({
   "notes": zod.string().nullish()
 })
 export const ListCrossReferencesByPartResponse = zod.array(ListCrossReferencesByPartResponseItem)
+
+
+/**
+ * @summary Update a cross reference
+ */
+export const UpdateCrossReferenceParams = zod.object({
+  "id": zod.coerce.number().int()
+})
+
+export const UpdateCrossReferenceBody = zod.object({
+  "partId": zod.number(),
+  "referenceType": zod.string(),
+  "referenceNumber": zod.string(),
+  "referenceDescription": zod.string().nullish(),
+  "referencePrice": zod.string().nullish(),
+  "notes": zod.string().nullish()
+})
+
+export const UpdateCrossReferenceResponse = zod.object({
+  "id": zod.number(),
+  "partId": zod.number(),
+  "referenceType": zod.string(),
+  "referenceNumber": zod.string(),
+  "referenceDescription": zod.string().nullish(),
+  "referencePrice": zod.string().nullish(),
+  "notes": zod.string().nullish()
+})
+
+
+/**
+ * @summary Delete a cross reference
+ */
+export const DeleteCrossReferenceParams = zod.object({
+  "id": zod.coerce.number().int()
+})
+
+export const DeleteCrossReferenceResponse = zod.void()
 
 
 /**

@@ -10,11 +10,12 @@ export interface PartInput {
   partNumber: string;
   description: string;
   category: string;
-  unitPrice: string;
   /** @nullable */
-  msrpPrice?: string | null;
+  packQuantity?: number | null;
   /** @nullable */
-  ourCost?: string | null;
+  packPrice?: string | null;
+  /** @nullable */
+  priceEach?: string | null;
   /** @nullable */
   supplierId?: number | null;
 }

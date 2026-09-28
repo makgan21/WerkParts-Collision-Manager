@@ -12,18 +12,20 @@ import {
 
 const router: IRouter = Router();
 
-function formatPart(r: typeof partsTable.$inferSelect & { supplierName?: string | null }) {
+function formatPart(
+  r: typeof partsTable.$inferSelect & { supplierName?: string | null },
+) {
   return {
     ...r,
-    unitPrice: r.unitPrice?.toString() ?? "0",
-    msrpPrice: r.msrpPrice?.toString() ?? null,
-    ourCost: r.ourCost?.toString() ?? null,
+    packPrice: r.packPrice?.toString() ?? null,
+    priceEach: r.priceEach?.toString() ?? null,
     createdAt: r.createdAt.toISOString(),
   };
 }
 
 router.get("/parts", async (req, res): Promise<void> => {
   const query = ListPartsQueryParams.safeParse(req.query);
+
   if (!query.success) {
     res.status(400).json({ error: query.error.message });
     return;
@@ -35,10 +37,9 @@ router.get("/parts", async (req, res): Promise<void> => {
       partNumber: partsTable.partNumber,
       description: partsTable.description,
       category: partsTable.category,
-      unitPrice: partsTable.unitPrice,
-      msrpPrice: partsTable.msrpPrice,
-      ourCost: partsTable.ourCost,
-      quantityInStock: partsTable.quantityInStock,
+      packQuantity: partsTable.packQuantity,
+      packPrice: partsTable.packPrice,
+      priceEach: partsTable.priceEach,
       supplierId: partsTable.supplierId,
       supplierName: suppliersTable.name,
       createdAt: partsTable.createdAt,
@@ -49,6 +50,7 @@ router.get("/parts", async (req, res): Promise<void> => {
 
   if (query.data.search) {
     const s = query.data.search.toLowerCase();
+
     rows = rows.filter(
       (r) =>
         r.partNumber.toLowerCase().includes(s) ||
@@ -65,6 +67,7 @@ router.get("/parts", async (req, res): Promise<void> => {
 
 router.post("/parts", async (req, res): Promise<void> => {
   const parsed = CreatePartBody.safeParse(req.body);
+
   if (!parsed.success) {
     res.status(400).json({ error: parsed.error.message });
     return;
@@ -76,10 +79,9 @@ router.post("/parts", async (req, res): Promise<void> => {
       partNumber: parsed.data.partNumber,
       description: parsed.data.description,
       category: parsed.data.category,
-      unitPrice: parsed.data.unitPrice,
-      msrpPrice: parsed.data.msrpPrice ?? null,
-      ourCost: parsed.data.ourCost ?? null,
-      quantityInStock: 0,
+      packQuantity: parsed.data.packQuantity ?? null,
+      packPrice: parsed.data.packPrice ?? null,
+      priceEach: parsed.data.priceEach ?? null,
       supplierId: parsed.data.supplierId ?? null,
     })
     .returning();
@@ -92,11 +94,14 @@ router.post("/parts", async (req, res): Promise<void> => {
         .then((r) => r[0])
     : null;
 
-  res.status(201).json(formatPart({ ...part, supplierName: supplier?.name ?? null }));
+  res
+    .status(201)
+    .json(formatPart({ ...part, supplierName: supplier?.name ?? null }));
 });
 
 router.get("/parts/:id", async (req, res): Promise<void> => {
   const params = GetPartParams.safeParse(req.params);
+
   if (!params.success) {
     res.status(400).json({ error: params.error.message });
     return;
@@ -108,10 +113,9 @@ router.get("/parts/:id", async (req, res): Promise<void> => {
       partNumber: partsTable.partNumber,
       description: partsTable.description,
       category: partsTable.category,
-      unitPrice: partsTable.unitPrice,
-      msrpPrice: partsTable.msrpPrice,
-      ourCost: partsTable.ourCost,
-      quantityInStock: partsTable.quantityInStock,
+      packQuantity: partsTable.packQuantity,
+      packPrice: partsTable.packPrice,
+      priceEach: partsTable.priceEach,
       supplierId: partsTable.supplierId,
       supplierName: suppliersTable.name,
       createdAt: partsTable.createdAt,
@@ -130,25 +134,48 @@ router.get("/parts/:id", async (req, res): Promise<void> => {
 
 router.put("/parts/:id", async (req, res): Promise<void> => {
   const params = UpdatePartParams.safeParse(req.params);
+
   if (!params.success) {
     res.status(400).json({ error: params.error.message });
     return;
   }
 
   const parsed = UpdatePartBody.safeParse(req.body);
+
   if (!parsed.success) {
     res.status(400).json({ error: parsed.error.message });
     return;
   }
 
   const updateData: Record<string, unknown> = {};
-  if (parsed.data.partNumber != null) updateData.partNumber = parsed.data.partNumber;
-  if (parsed.data.description != null) updateData.description = parsed.data.description;
-  if (parsed.data.category != null) updateData.category = parsed.data.category;
-  if (parsed.data.unitPrice != null) updateData.unitPrice = parsed.data.unitPrice;
-  if ("msrpPrice" in parsed.data) updateData.msrpPrice = parsed.data.msrpPrice ?? null;
-  if ("ourCost" in parsed.data) updateData.ourCost = parsed.data.ourCost ?? null;
-  if ("supplierId" in parsed.data) updateData.supplierId = parsed.data.supplierId ?? null;
+
+  if (parsed.data.partNumber != null) {
+    updateData.partNumber = parsed.data.partNumber;
+  }
+
+  if (parsed.data.description != null) {
+    updateData.description = parsed.data.description;
+  }
+
+  if (parsed.data.category != null) {
+    updateData.category = parsed.data.category;
+  }
+
+  if ("packQuantity" in parsed.data) {
+    updateData.packQuantity = parsed.data.packQuantity ?? null;
+  }
+
+  if ("packPrice" in parsed.data) {
+    updateData.packPrice = parsed.data.packPrice ?? null;
+  }
+
+  if ("priceEach" in parsed.data) {
+    updateData.priceEach = parsed.data.priceEach ?? null;
+  }
+
+  if ("supplierId" in parsed.data) {
+    updateData.supplierId = parsed.data.supplierId ?? null;
+  }
 
   const [part] = await db
     .update(partsTable)
@@ -169,11 +196,17 @@ router.put("/parts/:id", async (req, res): Promise<void> => {
         .then((r) => r[0])
     : null;
 
-  res.json(formatPart({ ...part, supplierName: supplier?.name ?? null }));
+  res.json(
+    formatPart({
+      ...part,
+      supplierName: supplier?.name ?? null,
+    }),
+  );
 });
 
 router.delete("/parts/:id", async (req, res): Promise<void> => {
   const params = DeletePartParams.safeParse(req.params);
+
   if (!params.success) {
     res.status(400).json({ error: params.error.message });
     return;

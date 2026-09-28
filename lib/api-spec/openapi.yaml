@@ -152,72 +152,97 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
   /cross-references:
-        get:
-          operationId: listCrossReferences
-          tags: [crossReferences]
-          summary: List all cross references
-          responses:
-            "200":
-              description: List of cross references
-              content:
-                application/json:
-                  schema:
-                    type: array
-                    items:
-                      $ref: "#/components/schemas/CrossReference"
+    get:
+      operationId: listCrossReferences
+      tags: [crossReferences]
+      summary: List all cross references
+      responses:
+        "200":
+          description: List of cross references
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CrossReference"
 
-        post:
-          operationId: createCrossReference
-          tags: [crossReferences]
-          summary: Create a cross reference
-          requestBody:
-            required: true
-            content:
-              application/json:
-                schema:
-                  $ref: "#/components/schemas/CrossReferenceInput"
-          responses:
-            "201":
-              description: Created
-              content:
-                application/json:
-                  schema:
-                    $ref: "#/components/schemas/CrossReference"
+    post:
+      operationId: createCrossReference
+      tags: [crossReferences]
+      summary: Create a cross reference
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CrossReferenceInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CrossReference"
 
   /cross-references/{partId}:
-        get:
-          operationId: listCrossReferencesByPart
-          tags: [crossReferences]
-          summary: List cross references for a part
-          parameters:
-            - name: partId
-              in: path
-              required: true
+    get:
+      operationId: listCrossReferencesByPart
+      tags: [crossReferences]
+      summary: List cross references for a part
+      parameters:
+        - name: partId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of cross references
+          content:
+            application/json:
               schema:
-                type: integer
-          responses:
-            "200":
-              description: List of cross references
-              content:
-                application/json:
-                  schema:
-                    type: array
-                    items:
-                      $ref: "#/components/schemas/CrossReference"
-    /cross-references/item/{id}:
-          delete:
-              operationId: deleteCrossReference
-              tags: [crossReferences]
-              summary: Delete a cross reference
-              parameters:
-                - name: id
-                  in: path
-                  required: true
-                  schema:
-                    type: integer
-              responses:
-                "204":
-                  description: Deleted
+                type: array
+                items:
+                  $ref: "#/components/schemas/CrossReference"
+
+  /cross-references/item/{id}:
+    put:
+      operationId: updateCrossReference
+      tags: [crossReferences]
+      summary: Update a cross reference
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CrossReferenceInput"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CrossReference"
+
+    delete:
+      operationId: deleteCrossReference
+      tags: [crossReferences]
+      summary: Delete a cross reference
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
   /suppliers:
     get:
       operationId: listSuppliers
@@ -634,7 +659,7 @@ components:
 
     Part:
       type: object
-      required: [id, partNumber, description, category, unitPrice, createdAt]
+      required: [id, partNumber, description, category, createdAt]
       properties:
         id:
           type: number
@@ -645,15 +670,14 @@ components:
         category:
           type: string
           description: "clip | retainer | nut | bolt | other"
-        unitPrice:
-          type: string
-          description: Retail/OEM price as string
-        msrpPrice:
+        packQuantity:
+          type: ["number", "null"]
+        packPrice:
           type: ["string", "null"]
-          description: MSRP price as string
-        ourCost:
+          description: Pack price as string
+        priceEach:
           type: ["string", "null"]
-          description: Our cost as string
+          description: Cost per individual part as string
         supplierId:
           type: ["number", "null"]
         supplierName:
@@ -663,7 +687,7 @@ components:
 
     PartInput:
       type: object
-      required: [partNumber, description, category, unitPrice]
+      required: [partNumber, description, category]
       properties:
         partNumber:
           type: string
@@ -671,11 +695,11 @@ components:
           type: string
         category:
           type: string
-        unitPrice:
-          type: string
-        msrpPrice:
+        packQuantity:
+          type: ["number", "null"]
+        packPrice:
           type: ["string", "null"]
-        ourCost:
+        priceEach:
           type: ["string", "null"]
         supplierId:
           type: ["number", "null"]
@@ -689,11 +713,11 @@ components:
           type: string
         category:
           type: string
-        unitPrice:
-          type: string
-        msrpPrice:
+        packQuantity:
+          type: ["number", "null"]
+        packPrice:
           type: ["string", "null"]
-        ourCost:
+        priceEach:
           type: ["string", "null"]
         supplierId:
           type: ["number", "null"]

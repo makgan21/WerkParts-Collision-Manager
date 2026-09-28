@@ -1,11 +1,9 @@
-import { useState, useRef } from "react";
-import { useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
 import {
   useCreateInvoice,
   useListTechnicians,
   useListInsuranceCompanies,
-  useCreateInsuranceCompany,
-  getListInsuranceCompaniesQueryKey,
+  useListParts,
 } from "@workspace/api-client-react";
 import { useLocation } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -38,9 +36,10 @@ export default function NewInvoice() {
 
   const { data: technicians } = useListTechnicians();
   const { data: insuranceCompanies } = useListInsuranceCompanies();
+  const { data: parts } = useListParts();
 
   const [items, setItems] = useState([
-    { id: Date.now(), partNumber: "", description: "", quantity: 1, unitPrice: "" },
+    { id: Date.now(), partId: null as number | null, partNumber: "", description: "", quantity: 1, unitPrice: "" },
   ]);
 
   const [formData, setFormData] = useState({
@@ -55,11 +54,47 @@ export default function NewInvoice() {
   });
 
   const handleItemChange = (id: number, field: string, value: string | number) => {
-    setItems(items.map((item) => (item.id === id ? { ...item, [field]: value } : item)));
+    if (field === "partNumber") {
+      const normalizedPartNumber = String(value).trim().toLowerCase();
+      const matchedPart = parts?.find(
+        (part) => part.partNumber.trim().toLowerCase() === normalizedPartNumber,
+      );
+
+      setItems((currentItems) =>
+        currentItems.map((item) => {
+          if (item.id !== id) return item;
+
+          if (matchedPart) {
+            return {
+              ...item,
+              partId: matchedPart.id,
+              partNumber: String(value),
+              description: matchedPart.description,
+              unitPrice: matchedPart.priceEach ?? matchedPart.packPrice ?? "",
+            };
+          }
+
+          return {
+            ...item,
+            partId: item.partId ? null : item.partId,
+            partNumber: String(value),
+            ...(item.partId ? { description: "", unitPrice: "" } : {}),
+          };
+        }),
+      );
+      return;
+    }
+
+    setItems((currentItems) =>
+      currentItems.map((item) => (item.id === id ? { ...item, [field]: value } : item)),
+    );
   };
 
   const addItem = () => {
-    setItems([...items, { id: Date.now(), partNumber: "", description: "", quantity: 1, unitPrice: "" }]);
+    setItems((currentItems) => [
+      ...currentItems,
+      { id: Date.now(), partId: null, partNumber: "", description: "", quantity: 1, unitPrice: "" },
+    ]);
   };
 
   const removeItem = (id: number) => {
@@ -81,6 +116,7 @@ export default function NewInvoice() {
       ...formData,
       status: "draft",
       items: validItems.map((i) => ({
+        partId: i.partId,
         partNumber: i.partNumber || "MISC",
         description: i.description,
         quantity: Number(i.quantity),
@@ -269,6 +305,13 @@ export default function NewInvoice() {
             <Plus className="w-4 h-4" /> Add Item
           </Button>
         </CardHeader>
+        <datalist id="part-number-options">
+          {parts?.map((part) => (
+            <option key={part.id} value={part.partNumber}>
+              {part.description}
+            </option>
+          ))}
+        </datalist>
         <div className="p-0 border-t border-border">
           <Table>
             <TableHeader>
@@ -289,6 +332,7 @@ export default function NewInvoice() {
                     <TableCell>
                       <Input
                         placeholder="Part #"
+                        list="part-number-options"
                         value={item.partNumber}
                         onChange={(e) => handleItemChange(item.id, "partNumber", e.target.value)}
                       />
