@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   useCreateInvoice,
   useListTechnicians,
   useListInsuranceCompanies,
   useListParts,
+  useListCrossReferences,
 } from "@workspace/api-client-react";
 import { useLocation } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -37,6 +38,7 @@ export default function NewInvoice() {
   const { data: technicians } = useListTechnicians();
   const { data: insuranceCompanies } = useListInsuranceCompanies();
   const { data: parts } = useListParts();
+  const { data: crossReferences } = useListCrossReferences();
 
   const [items, setItems] = useState([
     { id: Date.now(), partId: null as number | null, partNumber: "", description: "", quantity: 1, unitPrice: "" },
@@ -53,34 +55,85 @@ export default function NewInvoice() {
     notes: "",
   });
 
+  const resolvePartNumber = (value: string) => {
+    const normalizedPartNumber = value.trim().toLowerCase();
+    if (!normalizedPartNumber) return undefined;
+
+    const matchedPart = parts?.find(
+      (part) => part.partNumber.trim().toLowerCase() === normalizedPartNumber,
+    );
+    if (matchedPart) return matchedPart;
+
+    const matchedCrossReference = crossReferences?.find(
+      (reference) =>
+        reference.referenceType.trim().toLowerCase() === "oem" &&
+        reference.referenceNumber.trim().toLowerCase() === normalizedPartNumber,
+    );
+
+    return matchedCrossReference
+      ? parts?.find((part) => part.id === matchedCrossReference.partId)
+      : undefined;
+  };
+
+  useEffect(() => {
+    if (!parts || !crossReferences) return;
+
+    setItems((currentItems) => {
+      let changed = false;
+      const nextItems = currentItems.map((item) => {
+        const resolvedPart = resolvePartNumber(item.partNumber);
+        if (!resolvedPart) return item;
+
+        const unitPrice = resolvedPart.priceEach
+          ? (Number(resolvedPart.priceEach) / 0.6).toFixed(2)
+          : "";
+        if (
+          item.partId === resolvedPart.id &&
+          item.description === resolvedPart.description &&
+          item.unitPrice === unitPrice
+        ) {
+          return item;
+        }
+
+        changed = true;
+        return {
+          ...item,
+          partId: resolvedPart.id,
+          description: resolvedPart.description,
+          unitPrice,
+        };
+      });
+
+      return changed ? nextItems : currentItems;
+    });
+  }, [parts, crossReferences]);
+
   const handleItemChange = (id: number, field: string, value: string | number) => {
     if (field === "partNumber") {
-      const normalizedPartNumber = String(value).trim().toLowerCase();
-      const matchedPart = parts?.find(
-        (part) => part.partNumber.trim().toLowerCase() === normalizedPartNumber,
-      );
+      const resolvedPart = resolvePartNumber(String(value));
 
       setItems((currentItems) =>
         currentItems.map((item) => {
           if (item.id !== id) return item;
 
-          if (matchedPart) {
+          if (resolvedPart) {
             return {
               ...item,
-              partId: matchedPart.id,
+              partId: resolvedPart.id,
               partNumber: String(value),
-              description: matchedPart.description,
-              unitPrice: matchedPart.priceEach
-                ? (Number(matchedPart.priceEach) / 0.6).toFixed(2)
+              description: resolvedPart.description,
+              unitPrice: resolvedPart.priceEach
+                ? (Number(resolvedPart.priceEach) / 0.6).toFixed(2)
                 : "",
             };
           }
 
           return {
             ...item,
-            partId: item.partId ? null : item.partId,
+            partId: null,
             partNumber: String(value),
-            ...(item.partId ? { description: "", unitPrice: "" } : {}),
+            description: "",
+            unitPrice: "",
           };
         }),
       );
@@ -311,6 +364,11 @@ export default function NewInvoice() {
           {parts?.map((part) => (
             <option key={part.id} value={part.partNumber}>
               {part.description}
+            </option>
+          ))}
+          {crossReferences?.map((reference) => (
+            <option key={`oem-${reference.id}`} value={reference.referenceNumber}>
+              OEM cross-reference
             </option>
           ))}
         </datalist>

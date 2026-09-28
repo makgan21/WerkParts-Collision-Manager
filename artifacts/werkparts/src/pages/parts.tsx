@@ -2,6 +2,8 @@ import { useState, useRef } from "react";
 import {
   useListParts, useCreatePart, useUpdatePart, useDeletePart, useListSuppliers,
   getListPartsQueryKey,
+  useListCrossReferencesByPart, useCreateCrossReference, useUpdateCrossReference,
+  useDeleteCrossReference, getListCrossReferencesByPartQueryKey,
 } from "@workspace/api-client-react";
 import { Card } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -9,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Search, Plus, Edit2, Trash2, Upload } from "lucide-react";
+import { Search, Plus, Edit2, Trash2, Upload, Link2 } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
@@ -107,10 +109,201 @@ const parsePrice = (value: string) => {
   return parsed == null ? null : parsed.toFixed(2);
 };
 
+function CrossReferenceDialog({
+  part,
+  onClose,
+}: {
+  part: any;
+  onClose: () => void;
+}) {
+  const queryClient = useQueryClient();
+  const [referenceNumber, setReferenceNumber] = useState("");
+  const [editingReferenceId, setEditingReferenceId] = useState<number | null>(null);
+
+  const { data: references, isLoading } = useListCrossReferencesByPart(part.id);
+
+  const invalidateReferences = () => {
+    queryClient.invalidateQueries({
+      queryKey: getListCrossReferencesByPartQueryKey(part.id),
+    });
+  };
+
+  const createReference = useCreateCrossReference({
+    mutation: {
+      onSuccess: () => {
+        invalidateReferences();
+        setReferenceNumber("");
+        toast.success("OEM cross-reference added");
+      },
+      onError: (err: any) => toast.error(err?.error || "Failed to add cross-reference"),
+    },
+  });
+
+  const updateReference = useUpdateCrossReference({
+    mutation: {
+      onSuccess: () => {
+        invalidateReferences();
+        setReferenceNumber("");
+        setEditingReferenceId(null);
+        toast.success("OEM cross-reference updated");
+      },
+      onError: (err: any) => toast.error(err?.error || "Failed to update cross-reference"),
+    },
+  });
+
+  const deleteReference = useDeleteCrossReference({
+    mutation: {
+      onSuccess: () => {
+        invalidateReferences();
+        toast.success("OEM cross-reference deleted");
+      },
+      onError: (err: any) => toast.error(err?.error || "Failed to delete cross-reference"),
+    },
+  });
+
+  const resetForm = () => {
+    setReferenceNumber("");
+    setEditingReferenceId(null);
+  };
+
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const normalizedNumber = referenceNumber.trim();
+    if (!normalizedNumber) return;
+
+    const duplicate = references?.some(
+      (reference) =>
+        reference.id !== editingReferenceId &&
+        reference.referenceNumber.trim().toLowerCase() === normalizedNumber.toLowerCase(),
+    );
+    if (duplicate) {
+      toast.error("That OEM number is already linked to this part.");
+      return;
+    }
+
+    const data = {
+      partId: part.id,
+      referenceType: "OEM",
+      referenceNumber: normalizedNumber,
+      referenceDescription: null,
+      referencePrice: null,
+      notes: null,
+    };
+
+    if (editingReferenceId) {
+      updateReference.mutate({ id: editingReferenceId, data });
+    } else {
+      createReference.mutate({ data });
+    }
+  };
+
+  const startEditing = (reference: any) => {
+    setEditingReferenceId(reference.id);
+    setReferenceNumber(reference.referenceNumber);
+  };
+
+  const isSaving = createReference.isPending || updateReference.isPending;
+
+  return (
+    <Dialog
+      open={!!part}
+      onOpenChange={(open) => {
+        if (!open) {
+          resetForm();
+          onClose();
+        }
+      }}
+    >
+      <DialogContent className="sm:max-w-xl">
+        <DialogHeader>
+          <DialogTitle>OEM Cross-References</DialogTitle>
+          <p className="text-sm text-muted-foreground">
+            OEM numbers linked to Auveco part{" "}
+            <span className="font-mono font-bold text-foreground">{part.partNumber}</span>
+          </p>
+        </DialogHeader>
+
+        <div className="space-y-3">
+          {isLoading ? (
+            <p className="py-4 text-sm text-muted-foreground">Loading cross-references...</p>
+          ) : references?.length ? (
+            <div className="divide-y divide-border rounded-sm border border-border">
+              {references.map((reference) => (
+                <div key={reference.id} className="flex items-center justify-between gap-3 px-3 py-2">
+                  <div className="min-w-0">
+                    <div className="font-mono font-bold text-primary">{reference.referenceNumber}</div>
+                    <div className="text-xs text-muted-foreground">
+                      Enter this OEM number on an invoice to use this part&apos;s description and price.
+                    </div>
+                  </div>
+                  <div className="flex shrink-0 gap-1">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      aria-label={`Edit OEM number ${reference.referenceNumber}`}
+                      onClick={() => startEditing(reference)}
+                    >
+                      <Edit2 className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      aria-label={`Delete OEM number ${reference.referenceNumber}`}
+                      className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+                      onClick={() => {
+                        if (confirm(`Delete OEM cross-reference ${reference.referenceNumber}?`)) {
+                          deleteReference.mutate({ id: reference.id });
+                        }
+                      }}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="rounded-sm border border-dashed border-border px-3 py-5 text-center text-sm text-muted-foreground">
+              No OEM cross-references yet.
+            </p>
+          )}
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-3 border-t border-border pt-4">
+          <Label htmlFor="referenceNumber">
+            {editingReferenceId ? "Edit OEM Number" : "Add OEM Number"}
+          </Label>
+          <div className="flex gap-2">
+            <Input
+              id="referenceNumber"
+              value={referenceNumber}
+              onChange={(e) => setReferenceNumber(e.target.value)}
+              placeholder="Enter OEM part number"
+              autoFocus
+              required
+            />
+            <Button type="submit" disabled={isSaving || !referenceNumber.trim()}>
+              {editingReferenceId ? "Save" : "Add"}
+            </Button>
+            {editingReferenceId && (
+              <Button type="button" variant="outline" onClick={resetForm}>
+                Cancel
+              </Button>
+            )}
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 export default function Parts() {
   const [search, setSearch] = useState("");
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [editingPart, setEditingPart] = useState<any>(null);
+  const [crossReferencePart, setCrossReferencePart] = useState<any>(null);
   const [isImporting, setIsImporting] = useState(false);
   const csvInputRef = useRef<HTMLInputElement>(null);
 
@@ -447,7 +640,7 @@ export default function Parts() {
               <TableHead className="text-right">Pack Price</TableHead>
               <TableHead className="text-right">Price Each</TableHead>
               <TableHead className="text-right">Customer Price</TableHead>
-              <TableHead className="w-[90px]"></TableHead>
+              <TableHead className="w-[140px]"></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -494,6 +687,7 @@ export default function Parts() {
                       <Button
                         variant="ghost"
                         size="icon"
+                        aria-label={`Edit ${part.partNumber}`}
                         onClick={() => setEditingPart(part)}
                       >
                         <Edit2 className="w-4 h-4" />
@@ -501,6 +695,15 @@ export default function Parts() {
                       <Button
                         variant="ghost"
                         size="icon"
+                        aria-label={`Manage cross-references for ${part.partNumber}`}
+                        onClick={() => setCrossReferencePart(part)}
+                      >
+                        <Link2 className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        aria-label={`Delete ${part.partNumber}`}
                         className="text-destructive hover:text-destructive hover:bg-destructive/10"
                         onClick={() => {
                           if (confirm("Delete this part?")) {
@@ -538,6 +741,13 @@ export default function Parts() {
           {editingPart && <PartForm part={editingPart} />}
         </DialogContent>
       </Dialog>
+
+      {crossReferencePart && (
+        <CrossReferenceDialog
+          part={crossReferencePart}
+          onClose={() => setCrossReferencePart(null)}
+        />
+      )}
     </div>
   );
 }

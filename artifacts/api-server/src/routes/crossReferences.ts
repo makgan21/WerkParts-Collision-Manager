@@ -82,7 +82,7 @@ router.post("/cross-references", async (req, res): Promise<void> => {
 /**
  * UPDATE a Cross Reference
  */
-router.put("/cross-references/:id", async (req, res): Promise<void> => {
+router.put("/cross-references/item/:id", async (req, res): Promise<void> => {
   const id = Number(req.params.id);
 
   if (Number.isNaN(id)) {
@@ -125,7 +125,7 @@ router.put("/cross-references/:id", async (req, res): Promise<void> => {
 /**
  * DELETE a Cross Reference
  */
-router.delete("/cross-references/:id", async (req, res): Promise<void> => {
+router.delete("/cross-references/item/:id", async (req, res): Promise<void> => {
   const id = Number(req.params.id);
 
   if (Number.isNaN(id)) {
