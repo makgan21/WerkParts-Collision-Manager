@@ -70,7 +70,9 @@ export default function NewInvoice() {
               partId: matchedPart.id,
               partNumber: String(value),
               description: matchedPart.description,
-              unitPrice: matchedPart.priceEach ?? matchedPart.packPrice ?? "",
+              unitPrice: matchedPart.priceEach
+                ? (Number(matchedPart.priceEach) / 0.6).toFixed(2)
+                : "",
             };
           }
 
