@@ -12,12 +12,25 @@ import {
 
 const router: IRouter = Router();
 
-function generateInvoiceNumber(): string {
-  const now = new Date();
-  const year = now.getFullYear().toString().slice(-2);
-  const month = String(now.getMonth() + 1).padStart(2, "0");
-  const rand = Math.floor(Math.random() * 9000) + 1000;
-  return `WP-${year}${month}-${rand}`;
+async function generateInvoiceNumber(roNumber: string): Promise<string> {
+  const normalizedRoNumber = roNumber.trim();
+  const existingInvoices = await db
+    .select({ invoiceNumber: invoicesTable.invoiceNumber })
+    .from(invoicesTable)
+    .where(eq(invoicesTable.roNumber, normalizedRoNumber));
+
+  const escapedRoNumber = normalizedRoNumber.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const sequencePattern = new RegExp(`^WP-${escapedRoNumber}-(\\d+)$`, "i");
+  const existingSequenceNumbers = existingInvoices.flatMap(({ invoiceNumber }) => {
+    const match = invoiceNumber.match(sequencePattern);
+    return match ? [Number(match[1])] : [];
+  });
+
+  const nextSequence = existingSequenceNumbers.length > 0
+    ? Math.max(...existingSequenceNumbers) + 1
+    : existingInvoices.length + 1;
+
+  return `WP-${normalizedRoNumber}-${nextSequence}`;
 }
 
 function formatInvoice(inv: typeof invoicesTable.$inferSelect, itemCount?: number) {
@@ -85,6 +98,7 @@ router.post("/invoices", async (req, res): Promise<void> => {
   }
 
   const { items, ...invoiceData } = parsed.data;
+  const normalizedRoNumber = invoiceData.roNumber.trim();
 
   // Calculate total
   const total = items.reduce((sum, item) => {
@@ -94,8 +108,8 @@ router.post("/invoices", async (req, res): Promise<void> => {
   const [invoice] = await db
     .insert(invoicesTable)
     .values({
-      invoiceNumber: generateInvoiceNumber(),
-      roNumber: invoiceData.roNumber,
+      invoiceNumber: await generateInvoiceNumber(normalizedRoNumber),
+      roNumber: normalizedRoNumber,
       date: invoiceData.date,
       techName: invoiceData.techName,
       vehicleYear: invoiceData.vehicleYear,
