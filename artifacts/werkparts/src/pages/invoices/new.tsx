@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   useCreateInvoice,
+  useListInvoices,
   useListTechnicians,
   useListInsuranceCompanies,
   useListParts,
@@ -38,6 +39,7 @@ export default function NewInvoice() {
 
   const { data: technicians } = useListTechnicians();
   const { data: insuranceCompanies } = useListInsuranceCompanies();
+  const { data: invoices } = useListInvoices();
   const { data: parts } = useListParts();
   const { data: crossReferences } = useListCrossReferences();
 
@@ -55,6 +57,35 @@ export default function NewInvoice() {
     insuranceCompany: "",
     notes: "",
   });
+
+  useEffect(() => {
+    const normalizedRoNumber = formData.roNumber.trim().toLowerCase();
+    if (!normalizedRoNumber || !invoices) return;
+
+    const existingInvoice = invoices.find(
+      (invoice) => invoice.roNumber.trim().toLowerCase() === normalizedRoNumber,
+    );
+    if (!existingInvoice) return;
+
+    setFormData((current) => {
+      if (
+        current.insuranceCompany === existingInvoice.insuranceCompany &&
+        current.vehicleYear === existingInvoice.vehicleYear &&
+        current.vehicleMake === existingInvoice.vehicleMake &&
+        current.vehicleModel === existingInvoice.vehicleModel
+      ) {
+        return current;
+      }
+
+      return {
+        ...current,
+        insuranceCompany: existingInvoice.insuranceCompany,
+        vehicleYear: existingInvoice.vehicleYear,
+        vehicleMake: existingInvoice.vehicleMake,
+        vehicleModel: existingInvoice.vehicleModel,
+      };
+    });
+  }, [formData.roNumber, invoices]);
 
   const handleItemChange = (id: number, field: string, value: string | number) => {
     if (field === "partNumber") {
@@ -185,10 +216,19 @@ export default function NewInvoice() {
                 <Label htmlFor="roNumber">RO Number</Label>
                 <Input
                   id="roNumber"
+                  list="existing-ro-numbers"
                   required
                   value={formData.roNumber}
                   onChange={(e) => setFormData({ ...formData, roNumber: e.target.value })}
                 />
+                <datalist id="existing-ro-numbers">
+                  {Array.from(new Set(invoices?.map((invoice) => invoice.roNumber) ?? [])).map((roNumber) => (
+                    <option key={roNumber} value={roNumber} />
+                  ))}
+                </datalist>
+                <p className="text-xs text-muted-foreground">
+                  Existing RO numbers autofill vehicle and insurance details. Technician remains selectable.
+                </p>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="date">Date</Label>
