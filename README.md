@@ -14,7 +14,6 @@ Unlike generic inventory software, WerkParts is built around the daily workflow 
 - Technician tracking
 - Insurance company tracking
 - Local inventory database
-- Offline operation
 - Inventory reporting (planned)
 - Automatic Auveco catalog import
 - OEM cross-reference database
@@ -30,6 +29,7 @@ Unlike generic inventory software, WerkParts is built around the daily workflow 
 - Windows desktop application
 - Local SQLite database
 - Automatic updates
+- Offline operation
 
 ---
 
