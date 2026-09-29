@@ -226,9 +226,6 @@ export default function NewInvoice() {
                     <option key={roNumber} value={roNumber} />
                   ))}
                 </datalist>
-                <p className="text-xs text-muted-foreground">
-                  Existing RO numbers autofill vehicle and insurance details. Technician remains selectable.
-                </p>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="date">Date</Label>
