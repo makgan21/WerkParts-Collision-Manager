@@ -16,7 +16,6 @@ Unlike generic inventory software, WerkParts is built around the daily workflow 
 - Local inventory database
 - Offline operation
 - Windows desktop application
-- Barcode scanner support (planned)
 - Inventory reporting (planned)
 
 ---
@@ -29,9 +28,7 @@ Unlike generic inventory software, WerkParts is built around the daily workflow 
 - Local SQLite database
 - Printable professional invoices
 - Bulk inventory import/export
-- Purchase order management
 - Reporting dashboard
-- User permissions
 - Automatic updates
 
 ---
@@ -49,7 +46,6 @@ Future:
 
 - SQLite
 - Electron (Windows Desktop)
-- PDF Invoice Generator
 
 ---
 
