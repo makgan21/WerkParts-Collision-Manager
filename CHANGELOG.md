@@ -23,7 +23,7 @@ All notable changes to WerkParts Collision Manager will be documented here.
   - Customer pricing is automatically calculated using a 40% gross profit margin.
 - Expanded parts import functionality
   - Import parts from CSV files.
-  - Import parts from XLSX/Excel files.
+  - Import parts from XLS/XLSX/Excel files.
   - Imported over 10,000 Auveco part numbers into the parts catalog.
 - Parts database updates to support expanded pricing and catalog information.
 - Parts catalog cross-reference functionality.
