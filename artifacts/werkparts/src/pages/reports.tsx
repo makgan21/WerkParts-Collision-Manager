@@ -1,66 +1,57 @@
-import { useMemo } from "react";
-import { useListInvoices } from "@workspace/api-client-react";
-import { formatCurrency, formatDate } from "@/lib/utils";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { BarChart2, Users, TrendingUp } from "lucide-react";
+import { useGetReports } from "@workspace/api-client-react";
+import {
+  ArrowUpRight,
+  BarChart2,
+  Building2,
+  CalendarDays,
+  CircleDollarSign,
+  PackageSearch,
+  Users,
+} from "lucide-react";
+import { toast } from "sonner";
+import { Card, CardContent } from "@/components/ui/card";
+import { formatCurrency } from "@/lib/utils";
+import { REPORT_DEFINITIONS, type ReportId } from "@/lib/report-definitions";
+
+const reportIcons = {
+  "technician-usage": Users,
+  "monthly-revenue": CalendarDays,
+  "yearly-revenue": CircleDollarSign,
+  "insurance-usage": Building2,
+  "clip-usage": PackageSearch,
+} satisfies Record<ReportId, typeof Users>;
 
 export default function Reports() {
-  const { data: invoices, isLoading } = useListInvoices();
+  const { data: reports, isLoading, isError } = useGetReports();
 
-  // ── Technician Usage Report ─────────────────────────────────────────────────
-  const techReport = useMemo(() => {
-    if (!invoices) return [];
-    const map = new Map<string, { count: number; revenue: number }>();
-    for (const inv of invoices) {
-      const tech = inv.techName || "Unknown";
-      const existing = map.get(tech) ?? { count: 0, revenue: 0 };
-      map.set(tech, {
-        count: existing.count + 1,
-        revenue: existing.revenue + parseFloat(String(inv.totalAmount) || "0"),
-      });
+  const openReport = (reportId: ReportId) => {
+    const basePath = import.meta.env.BASE_URL.replace(/\/$/, "");
+    const reportWindow = window.open(
+      `${basePath}/reports/${reportId}`,
+      "_blank",
+      "noopener,noreferrer,width=1280,height=900",
+    );
+
+    if (!reportWindow) {
+      toast.error("Please allow pop-ups to open the report.");
     }
-    return Array.from(map.entries())
-      .map(([name, data]) => ({ name, ...data }))
-      .sort((a, b) => b.revenue - a.revenue);
-  }, [invoices]);
-
-  // ── Monthly Revenue Report ──────────────────────────────────────────────────
-  const monthlyReport = useMemo(() => {
-    if (!invoices) return [];
-    const map = new Map<string, { count: number; revenue: number }>();
-    for (const inv of invoices) {
-      if (!inv.date) continue;
-      const [year, month] = inv.date.split("-");
-      const key = `${year}-${month}`;
-      const existing = map.get(key) ?? { count: 0, revenue: 0 };
-      map.set(key, {
-        count: existing.count + 1,
-        revenue: existing.revenue + parseFloat(String(inv.totalAmount) || "0"),
-      });
-    }
-    return Array.from(map.entries())
-      .map(([key, data]) => {
-        const [year, month] = key.split("-");
-        const label = new Date(parseInt(year), parseInt(month) - 1, 1).toLocaleDateString("en-US", {
-          month: "long",
-          year: "numeric",
-        });
-        return { key, label, ...data };
-      })
-      .sort((a, b) => b.key.localeCompare(a.key));
-  }, [invoices]);
-
-  // ── Totals ──────────────────────────────────────────────────────────────────
-  const totalRevenue = useMemo(
-    () => invoices?.reduce((sum, inv) => sum + parseFloat(String(inv.totalAmount) || "0"), 0) ?? 0,
-    [invoices]
-  );
-
-  const totalInvoices = invoices?.length ?? 0;
+  };
 
   if (isLoading) {
     return <div className="p-8 font-bold uppercase tracking-wider animate-pulse">Loading reports...</div>;
+  }
+
+  if (isError || !reports) {
+    return (
+      <div className="p-8 max-w-6xl mx-auto w-full">
+        <Card>
+          <CardContent className="py-12 text-center">
+            <p className="font-bold uppercase tracking-wider">Reports are unavailable</p>
+            <p className="text-muted-foreground mt-2">Refresh the page and try again.</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
   }
 
   return (
@@ -69,105 +60,61 @@ export default function Reports() {
         <BarChart2 className="w-7 h-7 text-primary" />
         <div>
           <h1 className="text-3xl font-black uppercase tracking-tight">Reports</h1>
-          <p className="text-muted-foreground">Technician usage and revenue breakdowns.</p>
+          <p className="text-muted-foreground">Choose a report to open it in a printable window.</p>
         </div>
       </div>
 
-      {/* Summary Cards */}
       <div className="grid grid-cols-2 gap-4">
         <Card>
           <CardContent className="pt-6">
             <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Total Invoices</p>
-            <p className="text-4xl font-black font-mono mt-1">{totalInvoices}</p>
+            <p className="text-4xl font-black font-mono mt-1">{reports.totalInvoices}</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="pt-6">
             <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Total Revenue</p>
-            <p className="text-4xl font-black font-mono mt-1">{formatCurrency(totalRevenue)}</p>
+            <p className="text-4xl font-black font-mono mt-1">{formatCurrency(reports.totalRevenue)}</p>
           </CardContent>
         </Card>
       </div>
 
-      {/* Technician Usage */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Users className="w-5 h-5 text-primary" />
-            Technician Usage
-          </CardTitle>
-        </CardHeader>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Technician</TableHead>
-              <TableHead className="text-right">Invoices</TableHead>
-              <TableHead className="text-right">Total Revenue</TableHead>
-              <TableHead className="text-right">Avg per Invoice</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {techReport.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
-                  No invoice data yet.
-                </TableCell>
-              </TableRow>
-            ) : (
-              techReport.map((row) => (
-                <TableRow key={row.name}>
-                  <TableCell className="font-bold">{row.name}</TableCell>
-                  <TableCell className="text-right font-mono">{row.count}</TableCell>
-                  <TableCell className="text-right font-mono font-bold text-primary">
-                    {formatCurrency(row.revenue)}
-                  </TableCell>
-                  <TableCell className="text-right font-mono text-muted-foreground">
-                    {formatCurrency(row.count > 0 ? row.revenue / row.count : 0)}
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </Card>
+      <section aria-labelledby="report-menu-heading">
+        <div className="flex items-end justify-between gap-4 mb-4">
+          <div>
+            <h2 id="report-menu-heading" className="text-xl font-black uppercase tracking-tight">
+              Report Menu
+            </h2>
+            <p className="text-sm text-muted-foreground mt-1">
+              Select a report to open a detailed view in a new window.
+            </p>
+          </div>
+        </div>
 
-      {/* Monthly Revenue */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <TrendingUp className="w-5 h-5 text-primary" />
-            Monthly Revenue
-          </CardTitle>
-        </CardHeader>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Month</TableHead>
-              <TableHead className="text-right">Invoices</TableHead>
-              <TableHead className="text-right">Revenue</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {monthlyReport.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={3} className="text-center py-8 text-muted-foreground">
-                  No invoice data yet.
-                </TableCell>
-              </TableRow>
-            ) : (
-              monthlyReport.map((row) => (
-                <TableRow key={row.key}>
-                  <TableCell className="font-bold">{row.label}</TableCell>
-                  <TableCell className="text-right font-mono">{row.count}</TableCell>
-                  <TableCell className="text-right font-mono font-bold text-primary">
-                    {formatCurrency(row.revenue)}
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </Card>
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+          {REPORT_DEFINITIONS.map((report) => {
+            const Icon = reportIcons[report.id];
+            return (
+              <button
+                key={report.id}
+                type="button"
+                onClick={() => openReport(report.id)}
+                className="group text-left rounded-md border-2 border-card-border bg-card p-6 transition-all hover:border-primary hover:-translate-y-0.5 hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex h-11 w-11 items-center justify-center rounded-sm bg-primary/10 text-primary">
+                    <Icon className="h-5 w-5" />
+                  </div>
+                  <ArrowUpRight className="h-5 w-5 text-muted-foreground transition-colors group-hover:text-primary" />
+                </div>
+                <h3 className="mt-6 text-lg font-black uppercase tracking-tight">{report.title}</h3>
+                <p className="mt-2 text-sm leading-6 text-muted-foreground">{report.description}</p>
+                <p className="mt-5 text-xs font-bold uppercase tracking-widest text-primary">Open report</p>
+              </button>
+            );
+          })}
+        </div>
+      </section>
     </div>
   );
 }

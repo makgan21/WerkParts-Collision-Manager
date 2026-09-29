@@ -4,6 +4,7 @@ import partsRouter from "./parts";
 import suppliersRouter from "./suppliers";
 import invoicesRouter from "./invoices";
 import dashboardRouter from "./dashboard";
+import reportsRouter from "./reports";
 import settingsRouter from "./settings";
 import crossReferences from "./crossReferences";
 
@@ -14,6 +15,7 @@ router.use(partsRouter);
 router.use(suppliersRouter);
 router.use(invoicesRouter);
 router.use(dashboardRouter);
+router.use(reportsRouter);
 router.use(settingsRouter);
 router.use(crossReferences);
 

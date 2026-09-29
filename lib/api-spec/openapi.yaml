@@ -18,6 +18,8 @@ tags:
     description: Invoice management
   - name: dashboard
     description: Dashboard stats
+  - name: reports
+    description: Reporting and analytics
   - name: settings
     description: Settings management (technicians, insurance companies)
   - name: crossReferences
@@ -635,6 +637,19 @@ paths:
               schema:
                 $ref: "#/components/schemas/DashboardStats"
 
+  /reports:
+    get:
+      operationId: getReports
+      tags: [reports]
+      summary: Get reporting data
+      responses:
+        "200":
+          description: Reporting data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Reports"
+
 components:
   schemas:
     HealthStatus:
@@ -931,6 +946,86 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/Invoice"
+
+    TechnicianUsageReport:
+      type: object
+      required: [name, invoiceCount, totalRevenue]
+      properties:
+        name:
+          type: string
+        invoiceCount:
+          type: number
+        totalRevenue:
+          type: string
+
+    RevenueReportRow:
+      type: object
+      required: [period, label, invoiceCount, totalRevenue]
+      properties:
+        period:
+          type: string
+        label:
+          type: string
+        invoiceCount:
+          type: number
+        totalRevenue:
+          type: string
+
+    InsuranceUsageReport:
+      type: object
+      required: [name, invoiceCount, totalRevenue]
+      properties:
+        name:
+          type: string
+        invoiceCount:
+          type: number
+        totalRevenue:
+          type: string
+
+    ClipUsageReport:
+      type: object
+      required: [partNumber, description, quantity, invoiceCount, totalRevenue]
+      properties:
+        partNumber:
+          type: string
+        description:
+          type: string
+        quantity:
+          type: number
+        invoiceCount:
+          type: number
+        totalRevenue:
+          type: string
+
+    Reports:
+      type: object
+      required: [totalInvoices, totalRevenue, technicianUsage, monthlyRevenue, yearlyRevenue, insuranceUsage, clipUsage]
+      properties:
+        totalInvoices:
+          type: number
+        totalRevenue:
+          type: string
+        technicianUsage:
+          type: array
+          items:
+            $ref: "#/components/schemas/TechnicianUsageReport"
+        monthlyRevenue:
+          type: array
+          items:
+            $ref: "#/components/schemas/RevenueReportRow"
+        yearlyRevenue:
+          type: array
+          items:
+            $ref: "#/components/schemas/RevenueReportRow"
+        insuranceUsage:
+          type: array
+          items:
+            $ref: "#/components/schemas/InsuranceUsageReport"
+        clipUsage:
+          type: array
+          items:
+            $ref: "#/components/schemas/ClipUsageReport"
+
     Technician:
       type: object
       required: [id, name, createdAt]

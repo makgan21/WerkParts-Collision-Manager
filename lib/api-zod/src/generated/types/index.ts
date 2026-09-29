@@ -6,6 +6,7 @@
  * OpenAPI spec version: 0.1.0
  */
 
+export * from './clipUsageReport';
 export * from './crossReference';
 export * from './crossReferenceInput';
 export * from './crossReferenceUpdate';
@@ -14,6 +15,7 @@ export * from './errorResponse';
 export * from './healthStatus';
 export * from './insuranceCompany';
 export * from './insuranceCompanyInput';
+export * from './insuranceUsageReport';
 export * from './invoice';
 export * from './invoiceDetail';
 export * from './invoiceInput';
@@ -25,8 +27,11 @@ export * from './listPartsParams';
 export * from './part';
 export * from './partInput';
 export * from './partUpdate';
+export * from './reports';
+export * from './revenueReportRow';
 export * from './supplier';
 export * from './supplierInput';
 export * from './supplierUpdate';
 export * from './technician';
 export * from './technicianInput';
+export * from './technicianUsageReport';

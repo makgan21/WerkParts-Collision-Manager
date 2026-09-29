@@ -192,6 +192,43 @@ export interface DashboardStats {
   recentInvoices: Invoice[];
 }
 
+export interface TechnicianUsageReport {
+  name: string;
+  invoiceCount: number;
+  totalRevenue: string;
+}
+
+export interface RevenueReportRow {
+  period: string;
+  label: string;
+  invoiceCount: number;
+  totalRevenue: string;
+}
+
+export interface InsuranceUsageReport {
+  name: string;
+  invoiceCount: number;
+  totalRevenue: string;
+}
+
+export interface ClipUsageReport {
+  partNumber: string;
+  description: string;
+  quantity: number;
+  invoiceCount: number;
+  totalRevenue: string;
+}
+
+export interface Reports {
+  totalInvoices: number;
+  totalRevenue: string;
+  technicianUsage: TechnicianUsageReport[];
+  monthlyRevenue: RevenueReportRow[];
+  yearlyRevenue: RevenueReportRow[];
+  insuranceUsage: InsuranceUsageReport[];
+  clipUsage: ClipUsageReport[];
+}
+
 export interface Technician {
   id: number;
   name: string;
