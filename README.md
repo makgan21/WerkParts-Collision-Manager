@@ -17,18 +17,18 @@ Unlike generic inventory software, WerkParts is built around the daily workflow 
 - Offline operation
 - Windows desktop application
 - Inventory reporting (planned)
+- Automatic Auveco catalog import
+- OEM cross-reference database
+- Vehicle application lookup
+- Printable professional invoices
+- Bulk inventory import/export
+- Reporting dashboard
 
 ---
 
 ## Planned Features
 
-- Automatic Auveco catalog import
-- OEM cross-reference database
-- Vehicle application lookup
 - Local SQLite database
-- Printable professional invoices
-- Bulk inventory import/export
-- Reporting dashboard
 - Automatic updates
 
 ---
@@ -41,11 +41,6 @@ Current development:
 - React
 - TypeScript
 - Node.js
-
-Future:
-
-- SQLite
-- Electron (Windows Desktop)
 
 ---
 
