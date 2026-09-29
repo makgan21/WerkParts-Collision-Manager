@@ -14,7 +14,7 @@ All notable changes to WerkParts Collision Manager will be documented here.
 - Company Logo on Printed Invoices
 - Light/Dark Theme
 
-## Version 0.2.0 - Parts & Invoice Workflow Improvements (Still in development)
+## Version 0.2.0 - Parts & Invoice Workflow Improvements
 
 ### Added
 
