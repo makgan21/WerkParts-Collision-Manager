@@ -14,7 +14,7 @@ All notable changes to WerkParts Collision Manager will be documented here.
 - Company Logo on Printed Invoices
 - Light/Dark Theme
 
-## Version 0.2.0 - Parts & Invoice Workflow Improvements
+## Version 0.2.0 - Parts & Invoice Workflow Improvements (Still in development)
 
 ### Added
 
@@ -38,6 +38,7 @@ All notable changes to WerkParts Collision Manager will be documented here.
 - RO lookup functionality.
   - Search past invoices by RO number.
   - Matching RO information automatically fills available insurance and vehicle information on new invoices.
+- Added more reports
 
 ### Improved
 
