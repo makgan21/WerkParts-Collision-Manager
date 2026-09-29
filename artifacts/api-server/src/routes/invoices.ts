@@ -188,6 +188,26 @@ router.put("/invoices/:id", async (req, res): Promise<void> => {
     return;
   }
 
+  const [currentInvoice] = await db
+    .select({ status: invoicesTable.status })
+    .from(invoicesTable)
+    .where(eq(invoicesTable.id, params.data.id));
+
+  if (!currentInvoice) {
+    res.status(404).json({ error: "Invoice not found" });
+    return;
+  }
+
+  if (currentInvoice.status === "finalized") {
+    res.status(409).json({ error: "Finalized invoices are locked and cannot be changed" });
+    return;
+  }
+
+  if (currentInvoice.status === "voided") {
+    res.status(409).json({ error: "Voided invoices are locked and cannot be changed" });
+    return;
+  }
+
   const { items, ...invoiceFields } = parsed.data;
 
   const updateData: Record<string, unknown> = {};
@@ -259,6 +279,21 @@ router.delete("/invoices/:id", async (req, res): Promise<void> => {
   const params = DeleteInvoiceParams.safeParse(req.params);
   if (!params.success) {
     res.status(400).json({ error: params.error.message });
+    return;
+  }
+
+  const [currentInvoice] = await db
+    .select({ status: invoicesTable.status })
+    .from(invoicesTable)
+    .where(eq(invoicesTable.id, params.data.id));
+
+  if (!currentInvoice) {
+    res.status(404).json({ error: "Invoice not found" });
+    return;
+  }
+
+  if (currentInvoice.status === "finalized" || currentInvoice.status === "voided") {
+    res.status(409).json({ error: "Locked invoices cannot be deleted" });
     return;
   }
 

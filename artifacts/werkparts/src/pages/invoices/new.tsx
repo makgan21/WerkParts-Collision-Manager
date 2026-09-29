@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
   useCreateInvoice,
   useListTechnicians,
@@ -15,6 +15,7 @@ import { Label } from "@/components/ui/label";
 import { Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { formatCurrency } from "@/lib/utils";
+import { findInvoicePart, getCustomerPrice } from "@/lib/invoice-part-lookup";
 
 const CURRENT_YEAR = new Date().getFullYear();
 const YEARS = Array.from({ length: CURRENT_YEAR - 1989 }, (_, i) => String(CURRENT_YEAR + 1 - i));
@@ -55,76 +56,21 @@ export default function NewInvoice() {
     notes: "",
   });
 
-  const resolvePartNumber = (value: string) => {
-    const normalizedPartNumber = value.trim().toLowerCase();
-    if (!normalizedPartNumber) return undefined;
-
-    const matchedPart = parts?.find(
-      (part) => part.partNumber.trim().toLowerCase() === normalizedPartNumber,
-    );
-    if (matchedPart) return matchedPart;
-
-    const matchedCrossReference = crossReferences?.find(
-      (reference) =>
-        reference.referenceType.trim().toLowerCase() === "oem" &&
-        reference.referenceNumber.trim().toLowerCase() === normalizedPartNumber,
-    );
-
-    return matchedCrossReference
-      ? parts?.find((part) => part.id === matchedCrossReference.partId)
-      : undefined;
-  };
-
-  useEffect(() => {
-    if (!parts || !crossReferences) return;
-
-    setItems((currentItems) => {
-      let changed = false;
-      const nextItems = currentItems.map((item) => {
-        const resolvedPart = resolvePartNumber(item.partNumber);
-        if (!resolvedPart) return item;
-
-        const unitPrice = resolvedPart.priceEach
-          ? (Number(resolvedPart.priceEach) / 0.6).toFixed(2)
-          : "";
-        if (
-          item.partId === resolvedPart.id &&
-          item.description === resolvedPart.description &&
-          item.unitPrice === unitPrice
-        ) {
-          return item;
-        }
-
-        changed = true;
-        return {
-          ...item,
-          partId: resolvedPart.id,
-          description: resolvedPart.description,
-          unitPrice,
-        };
-      });
-
-      return changed ? nextItems : currentItems;
-    });
-  }, [parts, crossReferences]);
-
   const handleItemChange = (id: number, field: string, value: string | number) => {
     if (field === "partNumber") {
-      const resolvedPart = resolvePartNumber(String(value));
+      const matchedPart = findInvoicePart(String(value), parts, crossReferences);
 
       setItems((currentItems) =>
         currentItems.map((item) => {
           if (item.id !== id) return item;
 
-          if (resolvedPart) {
+          if (matchedPart) {
             return {
               ...item,
-              partId: resolvedPart.id,
+              partId: matchedPart.id,
               partNumber: String(value),
-              description: resolvedPart.description,
-              unitPrice: resolvedPart.priceEach
-                ? (Number(resolvedPart.priceEach) / 0.6).toFixed(2)
-                : "",
+              description: matchedPart.description,
+              unitPrice: getCustomerPrice(matchedPart),
             };
           }
 
@@ -145,6 +91,25 @@ export default function NewInvoice() {
     );
   };
 
+  const handlePartNumberBlur = (id: number, value: string) => {
+    const matchedPart = findInvoicePart(value, parts, crossReferences);
+    if (!matchedPart) return;
+
+    setItems((currentItems) =>
+      currentItems.map((item) =>
+        item.id === id
+          ? {
+              ...item,
+              partId: matchedPart.id,
+              partNumber: value,
+              description: matchedPart.description,
+              unitPrice: getCustomerPrice(matchedPart),
+            }
+          : item,
+      ),
+    );
+  };
+
   const addItem = () => {
     setItems((currentItems) => [
       ...currentItems,
@@ -159,8 +124,8 @@ export default function NewInvoice() {
   const calculateSubtotal = () =>
     items.reduce((acc, item) => acc + (parseFloat(String(item.unitPrice)) || 0) * item.quantity, 0);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSave = (form?: HTMLFormElement) => {
+    if (form && !form.reportValidity()) return;
     const validItems = items.filter((i) => i.description.trim() !== "" && i.unitPrice !== "");
     if (validItems.length === 0) {
       toast.error("Please add at least one line item.");
@@ -189,13 +154,21 @@ export default function NewInvoice() {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="p-8 max-w-5xl mx-auto space-y-8 w-full pb-32">
+    <form
+      onSubmit={(e) => e.preventDefault()}
+      className="p-8 max-w-5xl mx-auto space-y-8 w-full pb-32"
+    >
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-black uppercase tracking-tight">New Invoice</h1>
           <p className="text-muted-foreground">Draft a new repair order invoice.</p>
         </div>
-        <Button type="submit" size="lg" disabled={createInvoice.isPending}>
+        <Button
+          type="button"
+          size="lg"
+          onClick={(e) => handleSave(e.currentTarget.form ?? undefined)}
+          disabled={createInvoice.isPending}
+        >
           Save Invoice
         </Button>
       </div>
@@ -360,19 +333,17 @@ export default function NewInvoice() {
             <Plus className="w-4 h-4" /> Add Item
           </Button>
         </CardHeader>
-        <datalist id="part-number-options">
-          {parts?.map((part) => (
-            <option key={part.id} value={part.partNumber}>
-              {part.description}
-            </option>
-          ))}
-          {crossReferences?.map((reference) => (
-            <option key={`oem-${reference.id}`} value={reference.referenceNumber}>
-              OEM cross-reference
-            </option>
-          ))}
-        </datalist>
         <div className="p-0 border-t border-border">
+          <datalist id="part-number-options">
+            {parts?.map((part) => (
+              <option key={part.id} value={part.partNumber}>
+                {part.description}
+              </option>
+            ))}
+        {crossReferences?.map((reference) => (
+          <option key={`cross-reference-${reference.id}`} value={reference.referenceNumber} />
+        ))}
+          </datalist>
           <Table>
             <TableHeader>
               <TableRow>
@@ -395,6 +366,7 @@ export default function NewInvoice() {
                         list="part-number-options"
                         value={item.partNumber}
                         onChange={(e) => handleItemChange(item.id, "partNumber", e.target.value)}
+                        onBlur={(e) => handlePartNumberBlur(item.id, e.target.value)}
                       />
                     </TableCell>
                     <TableCell>
