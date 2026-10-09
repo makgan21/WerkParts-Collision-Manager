@@ -21,7 +21,7 @@ tags:
   - name: reports
     description: Reporting and analytics
   - name: settings
-    description: Settings management (technicians, insurance companies)
+    description: Shop, technician, and insurance-company settings
   - name: crossReferences
     description: Cross reference management
 
@@ -624,6 +624,36 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
 
+  /shop-profile:
+    get:
+      operationId: getShopProfile
+      tags: [settings]
+      summary: Get the current shop invoice branding
+      responses:
+        "200":
+          description: Current shop profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ShopProfile"
+    put:
+      operationId: updateShopProfile
+      tags: [settings]
+      summary: Set or remove the current shop invoice logo
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ShopProfileInput"
+      responses:
+        "200":
+          description: Updated shop profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ShopProfile"
+
   /dashboard:
     get:
       operationId: getDashboard
@@ -1061,6 +1091,22 @@ components:
       properties:
         name:
           type: string
+
+    ShopProfile:
+      type: object
+      required: [logoDataUrl]
+      properties:
+        logoDataUrl:
+          type: ["string", "null"]
+          maxLength: 1500000
+
+    ShopProfileInput:
+      type: object
+      required: [logoDataUrl]
+      properties:
+        logoDataUrl:
+          type: ["string", "null"]
+          maxLength: 1500000
              
     CrossReference:
       type: object

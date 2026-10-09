@@ -1,15 +1,18 @@
-import { pgTable, text, serial, timestamp } from "drizzle-orm/pg-core";
+import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
+import { sql } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 
-export const suppliersTable = pgTable("suppliers", {
-  id: serial("id").primaryKey(),
+export const suppliersTable = sqliteTable("suppliers", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
   name: text("name").notNull(),
   contactName: text("contact_name"),
   phone: text("phone"),
   email: text("email"),
   address: text("address"),
-  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  createdAt: integer("created_at", { mode: "timestamp_ms" })
+    .notNull()
+    .default(sql`(CAST(strftime('%s', 'now') AS INTEGER) * 1000)`),
 });
 
 export const insertSupplierSchema = createInsertSchema(suppliersTable).omit({ id: true, createdAt: true });

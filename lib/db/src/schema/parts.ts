@@ -1,19 +1,22 @@
-import { pgTable, text, serial, timestamp, numeric, integer } from "drizzle-orm/pg-core";
+import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
+import { sql } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 import { suppliersTable } from "./suppliers";
 
-export const partsTable = pgTable("parts", {
-  id: serial("id").primaryKey(),
+export const partsTable = sqliteTable("parts", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
   partNumber: text("part_number").notNull(),
   description: text("description").notNull(),
 
   packQuantity: integer("pack_quantity"),
-  packPrice: numeric("pack_price", { precision: 10, scale: 2 }),
-  priceEach: numeric("price_each", { precision: 10, scale: 4 }),
+  packPrice: text("pack_price"),
+  priceEach: text("price_each"),
 
   supplierId: integer("supplier_id").references(() => suppliersTable.id, { onDelete: "set null" }),
-  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  createdAt: integer("created_at", { mode: "timestamp_ms" })
+    .notNull()
+    .default(sql`(CAST(strftime('%s', 'now') AS INTEGER) * 1000)`),
 });
 
 export const insertPartSchema = createInsertSchema(partsTable).omit({ id: true, createdAt: true });

@@ -1,21 +1,24 @@
-import { pgTable, text, serial, timestamp, numeric, date } from "drizzle-orm/pg-core";
+import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
+import { sql } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 
-export const invoicesTable = pgTable("invoices", {
-  id: serial("id").primaryKey(),
+export const invoicesTable = sqliteTable("invoices", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
   invoiceNumber: text("invoice_number").notNull().unique(),
   roNumber: text("ro_number").notNull(),
-  date: date("date", { mode: "string" }).notNull(),
+  date: text("date").notNull(),
   techName: text("tech_name").notNull(),
   vehicleYear: text("vehicle_year").notNull(),
   vehicleMake: text("vehicle_make").notNull(),
   vehicleModel: text("vehicle_model").notNull(),
   insuranceCompany: text("insurance_company").notNull(),
   status: text("status").notNull().default("draft"),
-  totalAmount: numeric("total_amount", { precision: 10, scale: 2 }).notNull().default("0"),
+  totalAmount: text("total_amount").notNull().default("0"),
   notes: text("notes"),
-  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  createdAt: integer("created_at", { mode: "timestamp_ms" })
+    .notNull()
+    .default(sql`(CAST(strftime('%s', 'now') AS INTEGER) * 1000)`),
 });
 
 export const insertInvoiceSchema = createInsertSchema(invoicesTable).omit({ id: true, createdAt: true });

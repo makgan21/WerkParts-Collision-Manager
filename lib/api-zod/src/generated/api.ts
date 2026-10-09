@@ -576,6 +576,38 @@ export const DeleteInsuranceCompanyResponse = zod.void()
 
 
 /**
+ * @summary Get the current shop invoice branding
+ */
+export const getShopProfileResponseLogoDataUrlMax = 1500000;
+
+
+
+export const GetShopProfileResponse = zod.object({
+  "logoDataUrl": zod.string().max(getShopProfileResponseLogoDataUrlMax).nullable()
+})
+
+
+/**
+ * @summary Set or remove the current shop invoice logo
+ */
+export const updateShopProfileBodyLogoDataUrlMax = 1500000;
+
+
+
+export const UpdateShopProfileBody = zod.object({
+  "logoDataUrl": zod.string().max(updateShopProfileBodyLogoDataUrlMax).nullable()
+})
+
+export const updateShopProfileResponseLogoDataUrlMax = 1500000;
+
+
+
+export const UpdateShopProfileResponse = zod.object({
+  "logoDataUrl": zod.string().max(updateShopProfileResponseLogoDataUrlMax).nullable()
+})
+
+
+/**
  * @summary Get dashboard statistics
  */
 export const GetDashboardResponse = zod.object({

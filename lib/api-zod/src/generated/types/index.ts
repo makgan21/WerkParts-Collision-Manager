@@ -29,6 +29,8 @@ export * from './partInput';
 export * from './partUpdate';
 export * from './reports';
 export * from './revenueReportRow';
+export * from './shopProfile';
+export * from './shopProfileInput';
 export * from './supplier';
 export * from './supplierInput';
 export * from './supplierUpdate';

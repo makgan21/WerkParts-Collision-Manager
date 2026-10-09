@@ -5,3 +5,4 @@ export * from "./invoiceItems";
 export * from "./technicians";
 export * from "./insuranceCompanies";
 export * from "./CrossReferences";
+export * from "./shopProfile";

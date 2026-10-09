@@ -249,6 +249,22 @@ export interface InsuranceCompanyInput {
   name: string;
 }
 
+export interface ShopProfile {
+  /**
+     * @maxLength 1500000
+     * @nullable
+     */
+  logoDataUrl: string | null;
+}
+
+export interface ShopProfileInput {
+  /**
+     * @maxLength 1500000
+     * @nullable
+     */
+  logoDataUrl: string | null;
+}
+
 export interface CrossReference {
   id: number;
   partId: number;

@@ -1,19 +1,22 @@
-import { pgTable, text, serial, timestamp, numeric, integer } from "drizzle-orm/pg-core";
+import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
+import { sql } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 import { invoicesTable } from "./invoices";
 import { partsTable } from "./parts";
 
-export const invoiceItemsTable = pgTable("invoice_items", {
-  id: serial("id").primaryKey(),
+export const invoiceItemsTable = sqliteTable("invoice_items", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
   invoiceId: integer("invoice_id").notNull().references(() => invoicesTable.id, { onDelete: "cascade" }),
   partId: integer("part_id").references(() => partsTable.id, { onDelete: "set null" }),
   partNumber: text("part_number").notNull(),
   description: text("description").notNull(),
   quantity: integer("quantity").notNull().default(1),
-  unitPrice: numeric("unit_price", { precision: 10, scale: 2 }).notNull(),
-  totalPrice: numeric("total_price", { precision: 10, scale: 2 }).notNull(),
-  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  unitPrice: text("unit_price").notNull(),
+  totalPrice: text("total_price").notNull(),
+  createdAt: integer("created_at", { mode: "timestamp_ms" })
+    .notNull()
+    .default(sql`(CAST(strftime('%s', 'now') AS INTEGER) * 1000)`),
 });
 
 export const insertInvoiceItemSchema = createInsertSchema(invoiceItemsTable).omit({ id: true, createdAt: true });

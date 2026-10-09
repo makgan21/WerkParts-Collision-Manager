@@ -1,10 +1,11 @@
-import { pgTable, text, serial, numeric, integer, timestamp } from "drizzle-orm/pg-core";
+import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
+import { sql } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 import { partsTable } from "./parts";
 
-export const crossReferencesTable = pgTable("cross_references", {
-  id: serial("id").primaryKey(),
+export const crossReferencesTable = sqliteTable("cross_references", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
 
   partId: integer("part_id")
     .references(() => partsTable.id, { onDelete: "cascade" })
@@ -16,16 +17,13 @@ export const crossReferencesTable = pgTable("cross_references", {
 
   referenceDescription: text("reference_description"),
 
-  referencePrice: numeric("reference_price", {
-    precision: 10,
-    scale: 2,
-  }),
+  referencePrice: text("reference_price"),
 
   notes: text("notes"),
 
-  createdAt: timestamp("created_at", { withTimezone: true })
+  createdAt: integer("created_at", { mode: "timestamp_ms" })
     .notNull()
-    .defaultNow(),
+    .default(sql`(CAST(strftime('%s', 'now') AS INTEGER) * 1000)`),
 });
 
 export const insertCrossReferenceSchema =

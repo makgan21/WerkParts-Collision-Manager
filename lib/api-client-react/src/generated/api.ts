@@ -37,6 +37,8 @@ import type {
   PartInput,
   PartUpdate,
   Reports,
+  ShopProfile,
+  ShopProfileInput,
   Supplier,
   SupplierInput,
   SupplierUpdate,
@@ -2215,6 +2217,154 @@ export const useDeleteInsuranceCompany = <TError = ErrorType<ErrorResponse>,
         TContext
       > => {
       return useMutation(getDeleteInsuranceCompanyMutationOptions(options));
+    }
+
+export const getGetShopProfileUrl = () => {
+
+
+
+
+  return `/api/shop-profile`
+}
+
+/**
+ * @summary Get the current shop invoice branding
+ */
+export const getShopProfile = async ( options?: Parameters<typeof customFetch>[1]): Promise<ShopProfile> => {
+
+  return customFetch<ShopProfile>(getGetShopProfileUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetShopProfileQueryKey = () => {
+    return [
+    `/api/shop-profile`
+    ] as const;
+    }
+
+
+export const getGetShopProfileQueryOptions = <TData = Awaited<ReturnType<typeof getShopProfile>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getShopProfile>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetShopProfileQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getShopProfile>>> = ({ signal }) => getShopProfile({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getShopProfile>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetShopProfileQueryResult = NonNullable<Awaited<ReturnType<typeof getShopProfile>>>
+export type GetShopProfileQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get the current shop invoice branding
+ */
+
+export function useGetShopProfile<TData = Awaited<ReturnType<typeof getShopProfile>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getShopProfile>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetShopProfileQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getUpdateShopProfileUrl = () => {
+
+
+
+
+  return `/api/shop-profile`
+}
+
+/**
+ * @summary Set or remove the current shop invoice logo
+ */
+export const updateShopProfile = async (shopProfileInput: ShopProfileInput, options?: Parameters<typeof customFetch>[1]): Promise<ShopProfile> => {
+
+  return customFetch<ShopProfile>(getUpdateShopProfileUrl(),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(shopProfileInput)
+  }
+);}
+
+
+
+
+
+export const getUpdateShopProfileMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateShopProfile>>, TError,{data: BodyType<ShopProfileInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateShopProfile>>, TError,{data: BodyType<ShopProfileInput>}, TContext> => {
+
+const mutationKey = ['updateShopProfile'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateShopProfile>>, {data: BodyType<ShopProfileInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  updateShopProfile(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateShopProfileMutationResult = NonNullable<Awaited<ReturnType<typeof updateShopProfile>>>
+    export type UpdateShopProfileMutationBody = BodyType<ShopProfileInput>
+    export type UpdateShopProfileMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Set or remove the current shop invoice logo
+ */
+export const useUpdateShopProfile = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateShopProfile>>, TError,{data: BodyType<ShopProfileInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateShopProfile>>,
+        TError,
+        {data: BodyType<ShopProfileInput>},
+        TContext
+      > => {
+      return useMutation(getUpdateShopProfileMutationOptions(options));
     }
 
 export const getGetDashboardUrl = () => {
