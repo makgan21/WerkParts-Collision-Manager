@@ -53,3 +53,22 @@ All notable changes to WerkParts Collision Manager will be documented here.
 This version represents a major expansion of the original WerkParts baseline, with improved parts lookup, automated pricing, expanded catalog importing, cross-reference support, and a draft/finalized invoice workflow.
 
 The cross-reference system is currently in place but has not yet been populated with OEM-to-catalog part relationships.
+
+### Version 0.3.0 — Reports Improvements
+
+### Fixed
+
+- Fixed issues with the Reports page.
+- Updated report routing to support report detail pages.
+- Updated report API route handling.
+
+### Added
+
+- Added a dedicated report detail page.
+- Added report definitions to support report navigation and detail views.
+- Improved access to individual reports through the Reports interface.
+
+### Improved
+
+- Refined the Reports page layout and navigation.
+- Improved the overall reporting workflow
