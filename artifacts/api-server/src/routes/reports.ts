@@ -41,7 +41,7 @@ function formatUsage(map: Map<string, UsageAccumulator>) {
       invoiceCount: data.invoiceCount,
       totalRevenue: data.totalRevenue.toFixed(2),
     }))
-    .sort((a, b) => b.totalRevenue.localeCompare(a.totalRevenue));
+    .sort((a, b) => Number(b.totalRevenue) - Number(a.totalRevenue));
 }
 
 router.get("/reports", async (_req, res): Promise<void> => {
@@ -108,6 +108,11 @@ router.get("/reports", async (_req, res): Promise<void> => {
     const catalogPart = item.partId == null ? undefined : partsById.get(item.partId);
     const partNumber = catalogPart?.partNumber ?? item.partNumber;
     const description = catalogPart?.description ?? item.description;
+    const clipDescription = `${partNumber} ${description}`.toLowerCase();
+    const isClipStyleFastener = /\b(clip|retainer|rivet|fastener|pin)\b/.test(clipDescription);
+    const isGrommet = /\bgrommet\b/.test(clipDescription) && !/\b(screw|nut|washer)\b/.test(clipDescription);
+    if (!isClipStyleFastener && !isGrommet) continue;
+
     const key = catalogPart
       ? `part:${catalogPart.id}`
       : `value:${partNumber.trim().toLowerCase()}|${description.trim().toLowerCase()}`;
@@ -142,7 +147,7 @@ router.get("/reports", async (_req, res): Promise<void> => {
         invoiceCount: clip.invoiceIds.size,
         totalRevenue: clip.totalRevenue.toFixed(2),
       }))
-      .sort((a, b) => b.quantity - a.quantity || b.totalRevenue.localeCompare(a.totalRevenue)),
+      .sort((a, b) => b.quantity - a.quantity || Number(b.totalRevenue) - Number(a.totalRevenue)),
   });
 });
 

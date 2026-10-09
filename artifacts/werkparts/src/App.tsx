@@ -12,6 +12,7 @@ import NewInvoice from './pages/invoices/new';
 import InvoiceDetail from './pages/invoices/detail';
 import Settings from './pages/settings';
 import Reports from './pages/reports';
+import ReportDetail from './pages/report-detail';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -34,6 +35,7 @@ function Router() {
         <Route path="/suppliers" component={Suppliers} />
         <Route path="/settings" component={Settings} />
         <Route path="/reports" component={Reports} />
+        <Route path="/reports/:reportId" component={ReportDetail} />
         <Route component={NotFound} />
       </Switch>
     </Layout>

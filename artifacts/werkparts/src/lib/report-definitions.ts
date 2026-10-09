@@ -22,7 +22,7 @@ export const REPORT_DEFINITIONS = [
   {
     id: "clip-usage",
     title: "Clip Usage",
-    description: "Most-used clips ranked by quantity across invoices.",
+    description: "Clips, retainers, rivets, grommets, and pins ranked by quantity used.",
   },
 ] as const;
 

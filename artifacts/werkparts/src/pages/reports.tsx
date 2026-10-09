@@ -8,7 +8,7 @@ import {
   PackageSearch,
   Users,
 } from "lucide-react";
-import { toast } from "sonner";
+import { Link } from "wouter";
 import { Card, CardContent } from "@/components/ui/card";
 import { formatCurrency } from "@/lib/utils";
 import { REPORT_DEFINITIONS, type ReportId } from "@/lib/report-definitions";
@@ -23,19 +23,6 @@ const reportIcons = {
 
 export default function Reports() {
   const { data: reports, isLoading, isError } = useGetReports();
-
-  const openReport = (reportId: ReportId) => {
-    const basePath = import.meta.env.BASE_URL.replace(/\/$/, "");
-    const reportWindow = window.open(
-      `${basePath}/reports/${reportId}`,
-      "_blank",
-      "noopener,noreferrer,width=1280,height=900",
-    );
-
-    if (!reportWindow) {
-      toast.error("Please allow pop-ups to open the report.");
-    }
-  };
 
   if (isLoading) {
     return <div className="p-8 font-bold uppercase tracking-wider animate-pulse">Loading reports...</div>;
@@ -60,7 +47,7 @@ export default function Reports() {
         <BarChart2 className="w-7 h-7 text-primary" />
         <div>
           <h1 className="text-3xl font-black uppercase tracking-tight">Reports</h1>
-          <p className="text-muted-foreground">Choose a report to open it in a printable window.</p>
+          <p className="text-muted-foreground">Choose a report to view, then print it when you’re ready.</p>
         </div>
       </div>
 
@@ -86,7 +73,7 @@ export default function Reports() {
               Report Menu
             </h2>
             <p className="text-sm text-muted-foreground mt-1">
-              Select a report to open a detailed view in a new window.
+              Select a report to open its detailed view.
             </p>
           </div>
         </div>
@@ -95,10 +82,9 @@ export default function Reports() {
           {REPORT_DEFINITIONS.map((report) => {
             const Icon = reportIcons[report.id];
             return (
-              <button
+              <Link
                 key={report.id}
-                type="button"
-                onClick={() => openReport(report.id)}
+                href={`/reports/${report.id}`}
                 className="group text-left rounded-md border-2 border-card-border bg-card p-6 transition-all hover:border-primary hover:-translate-y-0.5 hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
                 <div className="flex items-start justify-between gap-4">
@@ -110,7 +96,7 @@ export default function Reports() {
                 <h3 className="mt-6 text-lg font-black uppercase tracking-tight">{report.title}</h3>
                 <p className="mt-2 text-sm leading-6 text-muted-foreground">{report.description}</p>
                 <p className="mt-5 text-xs font-bold uppercase tracking-widest text-primary">Open report</p>
-              </button>
+              </Link>
             );
           })}
         </div>
