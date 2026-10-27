@@ -4,9 +4,10 @@ description: Key constraints and decisions for the WerkParts collision fastener 
 ---
 
 ## Stack
-- pnpm monorepo, React+Vite (`artifacts/werkparts`), Express 5 API (`artifacts/api-server`), PostgreSQL + Drizzle ORM
+- pnpm monorepo, React+Vite (`artifacts/werkparts`), Express 5 API (`artifacts/api-server`), SQLite via Node's built-in `node:sqlite` + Drizzle ORM
 - Orval 8.x codegen from `lib/api-spec/openapi.yaml` → `lib/api-client-react` and `lib/api-zod`
-- After any openapi.yaml change: run `pnpm --filter @workspace/api-spec run codegen` then `pnpm --filter @workspace/db run push`
+- After any `openapi.yaml` change, run `pnpm --filter @workspace/api-spec run codegen`
+- SQLite tables are initialized from DDL in `lib/db/src/index.ts`; keep it synchronized with `lib/db/src/schema/`
 
 ## Critical: Orval + Zod v3
 All `type: integer` fields in openapi.yaml MUST use `type: number`. Orval 8.x generates `zod.int()` (Zod v4 API) but the workspace uses Zod v3, which breaks compilation.

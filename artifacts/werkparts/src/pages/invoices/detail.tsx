@@ -7,6 +7,7 @@ import {
   useListInsuranceCompanies,
   useListParts,
   useListCrossReferences,
+  useGetShopProfile,
   type CrossReference,
   type Part,
 } from "@workspace/api-client-react";
@@ -22,7 +23,6 @@ import { Link } from "wouter";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import { getGetInvoiceQueryKey } from "@workspace/api-client-react";
-import WerkheiserLogo from "@/assets/werkheiser-logo.png";
 import { findInvoicePart, getCustomerPrice } from "@/lib/invoice-part-lookup";
 
 const selectClass =
@@ -92,6 +92,7 @@ export default function InvoiceDetail() {
   const { data: insuranceCompanies } = useListInsuranceCompanies();
   const { data: parts } = useListParts();
   const { data: crossReferences } = useListCrossReferences();
+  const { data: shopProfile } = useGetShopProfile();
   const [isEditing, setIsEditing] = useState(false);
   const [draftData, setDraftData] = useState<DraftData | null>(null);
   const [draftItems, setDraftItems] = useState<DraftItem[]>([]);
@@ -556,11 +557,13 @@ export default function InvoiceDetail() {
         {/* Header */}
         <div className="flex justify-between items-start mb-12 border-b border-border pb-8">
           <div>
-            <img 
-              src={WerkheiserLogo}
-              alt="Werkheiser Collision"
-              className="h-auto w-auto"
-            />
+            {shopProfile?.logoDataUrl && (
+              <img
+                src={shopProfile.logoDataUrl}
+                alt="Shop logo"
+                className="max-h-20 max-w-[300px] object-contain object-left"
+              />
+            )}
           </div>
           <div className="text-right space-y-1">
             <h2 className="text-3xl font-black tracking-tight uppercase text-muted-foreground print:text-black">{invoice.invoiceNumber}</h2>

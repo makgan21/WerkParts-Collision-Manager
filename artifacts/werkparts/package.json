@@ -3,9 +3,14 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
+  "main": "dist-desktop/main.cjs",
   "scripts": {
     "dev": "vite --config vite.config.ts --host 0.0.0.0",
     "build": "vite build --config vite.config.ts",
+    "desktop:build": "node ./desktop/build.mjs",
+    "desktop:run": "electron .",
+    "desktop:portable:win": "pnpm run desktop:build && electron-builder --win portable",
+    "desktop:installer:win": "pnpm run desktop:build && electron-builder --win nsis",
     "serve": "vite preview --config vite.config.ts --host 0.0.0.0",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
@@ -53,6 +58,8 @@
     "clsx": "catalog:",
     "cmdk": "^1.1.1",
     "date-fns": "^3.6.0",
+    "electron": "42.11.18",
+    "electron-builder": "26.18.0",
     "embla-carousel-react": "^8.6.0",
     "framer-motion": "catalog:",
     "input-otp": "^1.4.2",
@@ -76,5 +83,35 @@
   },
   "dependencies": {
     "xlsx": "^0.18.5"
+  },
+  "build": {
+    "appId": "com.werkheiser.werkparts",
+    "productName": "WerkParts",
+    "asar": true,
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist-desktop/**/*",
+      "dist/public/**/*"
+    ],
+    "extraResources": [
+      {
+        "from": "desktop/catalog-seed.sqlite",
+        "to": "catalog-seed.sqlite"
+      }
+    ],
+    "win": {
+      "target": [
+        "nsis"
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true
+    }
   }
 }

@@ -1,6 +1,11 @@
 import { Router, type IRouter } from "express";
 import { eq } from "drizzle-orm";
-import { db, techniciansTable, insuranceCompaniesTable } from "@workspace/db";
+import {
+  db,
+  techniciansTable,
+  insuranceCompaniesTable,
+  shopProfileTable,
+} from "@workspace/db";
 import {
   CreateTechnicianBody,
   UpdateTechnicianBody,
@@ -10,9 +15,51 @@ import {
   UpdateInsuranceCompanyBody,
   UpdateInsuranceCompanyParams,
   DeleteInsuranceCompanyParams,
+  UpdateShopProfileBody,
 } from "@workspace/api-zod";
 
 const router: IRouter = Router();
+
+// ── Shop invoice branding ─────────────────────────────────────────────────────
+
+router.get("/shop-profile", async (_req, res): Promise<void> => {
+  const [profile] = await db
+    .select({ logoDataUrl: shopProfileTable.logoDataUrl })
+    .from(shopProfileTable)
+    .where(eq(shopProfileTable.id, 1));
+
+  res.json({ logoDataUrl: profile?.logoDataUrl ?? null });
+});
+
+router.put("/shop-profile", async (req, res): Promise<void> => {
+  const parsed = UpdateShopProfileBody.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: parsed.error.message });
+    return;
+  }
+
+  const { logoDataUrl } = parsed.data;
+  if (
+    logoDataUrl &&
+    !/^data:image\/(?:png|jpeg|webp);base64,[A-Za-z0-9+/]+={0,2}$/.test(logoDataUrl)
+  ) {
+    res.status(400).json({
+      error: "Upload a PNG, JPEG, or WebP image to use as the invoice logo.",
+    });
+    return;
+  }
+
+  const [profile] = await db
+    .insert(shopProfileTable)
+    .values({ id: 1, logoDataUrl })
+    .onConflictDoUpdate({
+      target: shopProfileTable.id,
+      set: { logoDataUrl },
+    })
+    .returning({ logoDataUrl: shopProfileTable.logoDataUrl });
+
+  res.json({ logoDataUrl: profile.logoDataUrl });
+});
 
 // ── Technicians ──────────────────────────────────────────────────────────────
 

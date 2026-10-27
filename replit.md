@@ -9,15 +9,17 @@ A web app for collision repair shops to invoice fasteners (clips, retainers, nut
 - `pnpm run typecheck` — full typecheck across all packages
 - `pnpm run build` — typecheck + build all packages
 - `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from the OpenAPI spec
-- `pnpm --filter @workspace/db run push` — push DB schema changes (dev only)
-- Required env: `DATABASE_URL` — Postgres connection string
+- `pnpm --filter @workspace/werkparts run desktop:portable:win` — build the portable Windows app
+- `pnpm --filter @workspace/werkparts run desktop:installer:win` — build a Windows installer (requires Wine when run on Linux)
+- Optional env: `WERKPARTS_DB_PATH` — override the local SQLite file path
 
 ## Stack
 
 - pnpm workspaces, Node.js 24, TypeScript 5.9
 - Frontend: React + Vite (artifacts/werkparts)
 - API: Express 5 (artifacts/api-server)
-- DB: PostgreSQL + Drizzle ORM
+- DB: SQLite via Node's built-in `node:sqlite` + Drizzle ORM
+- Desktop: Electron for Windows, with a portable executable and NSIS installer configuration
 - Validation: Zod (v3), drizzle-zod
 - API codegen: Orval (from OpenAPI spec in lib/api-spec/openapi.yaml)
 - Build: esbuild (CJS bundle)
@@ -34,10 +36,13 @@ A web app for collision repair shops to invoice fasteners (clips, retainers, nut
 ## Architecture decisions
 
 - All `type: integer` fields in openapi.yaml must use `type: number` — Orval 8.x generates `zod.int()` (Zod v4 syntax) for integers, but the workspace uses Zod v3. Using `type: number` generates the correct `zod.number()`.
-- Invoice numbers are auto-generated server-side in format `WP-YYMM-NNNN`
+- Invoice numbers are auto-generated server-side per RO in format `WP-{RO}-{sequence}` (for example, `WP-5780-1`)
 - Invoice items cascade-delete when an invoice is deleted
 - Creating an invoice decrements parts stock quantities automatically
 - All money values are stored/returned as decimal strings (not floats) to avoid floating-point errors
+- Each shop uses a private SQLite database. The portable Windows build stores its data beside the app on the flash drive; an installed build stores data in that Windows user's application data folder.
+- Shared app packages include only the parts/vendor catalog. Shop invoices, technicians, insurers, and logos stay in each shop's private database.
+- Shops maintain their own parts catalog as vendors add products. Invoice retention/age limits are deferred; do not delete older invoices automatically.
 
 ## Product
 
@@ -45,10 +50,15 @@ A web app for collision repair shops to invoice fasteners (clips, retainers, nut
 - **Invoices** — create, view, edit, delete invoices; each invoice has RO number, date, tech, vehicle info, insurance company, and line items with part number, qty, unit price, total; prints cleanly with "OEM Authorized Price" label
 - **Parts Catalog** — manage on-hand fastener inventory (clips, retainers, nuts, bolts) with part numbers, pricing, and stock quantities
 - **Suppliers** — manage fastener supplier contact information
+- **Reports** — technician usage, monthly and yearly revenue, insurance usage, and most-used clips, with printable detail views
+- **Invoice Logo** — set, replace, or remove a logo for the local shop's printed invoices
 
 ## User preferences
 
-- Single shop / personal use
+- One shop per private database; only one computer uses that database at a time
+- The app is intended to be easy to share, but invoice and shop-specific data must remain private to each shop
+- Each shop updates its own parts catalog when vendors add products
+- Invoice retention limits may be added later; never purge old invoices without an explicit decision
 - Invoice must display "OEM Authorized Price" below the parts list
 - Invoice fields: RO number, invoice number, date, tech, year/make/model, insurance company
 - Line item fields: part number, quantity, price, description, total price
@@ -58,7 +68,7 @@ A web app for collision repair shops to invoice fasteners (clips, retainers, nut
 
 - After changing openapi.yaml, always run `pnpm --filter @workspace/api-spec run codegen` before touching any frontend or backend code
 - Do NOT use `type: integer` in openapi.yaml — use `type: number` (see Architecture decisions)
-- Run `pnpm --filter @workspace/db run push` after any schema change in `lib/db/src/schema/`
+- Keep the SQLite DDL in `lib/db/src/index.ts` synchronized with `lib/db/src/schema/` when changing the schema
 
 ## Pointers
 

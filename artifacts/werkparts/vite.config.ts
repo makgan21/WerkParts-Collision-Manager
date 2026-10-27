@@ -69,6 +69,9 @@ export default defineConfig({
     strictPort: true,
     host: '0.0.0.0',
     allowedHosts: true,
+    watch: {
+      ignored: ['**/release/**', '**/dist-desktop/**'],
+    },
     fs: {
       strict: true,
     },

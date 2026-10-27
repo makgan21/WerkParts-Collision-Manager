@@ -121,9 +121,10 @@ export function createDatabase(databasePath: string) {
 
 export const databasePath = process.env.WERKPARTS_DB_PATH
   ? resolve(process.env.WERKPARTS_DB_PATH)
-  : resolve(process.cwd(), ".data", "werkparts.sqlite");
+  : resolve(process.cwd(), ".data", "werkparts-private.sqlite");
 const database = createDatabase(databasePath);
 export const db = database.db;
+export const sqliteClient = database.client;
 export const closeDatabase = () => database.client.close();
 
 export * from "./schema";

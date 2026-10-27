@@ -1,22 +1,159 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import {
   useListTechnicians, useCreateTechnician, useUpdateTechnician, useDeleteTechnician,
   useListInsuranceCompanies, useCreateInsuranceCompany, useUpdateInsuranceCompany, useDeleteInsuranceCompany,
   useListSuppliers, useCreateSupplier, useUpdateSupplier, useDeleteSupplier,
   getListTechniciansQueryKey, getListInsuranceCompaniesQueryKey, getListSuppliersQueryKey,
+  useGetShopProfile, useUpdateShopProfile, getGetShopProfileQueryKey,
 } from "@workspace/api-client-react";
-import { Card } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Settings as SettingsIcon, Users, ShieldCheck, Truck, Sun, Moon, Plus, Edit2, Trash2 } from "lucide-react";
+import { Settings as SettingsIcon, Users, ShieldCheck, Truck, Sun, Moon, Plus, Edit2, Trash2, ImagePlus } from "lucide-react";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import { useTheme } from "@/lib/theme";
 
-type Tab = "technicians" | "insurance" | "suppliers" | "theme";
+type Tab = "technicians" | "insurance" | "suppliers" | "branding" | "theme";
+
+function LogoSection() {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const queryClient = useQueryClient();
+  const { data: profile, isLoading } = useGetShopProfile();
+
+  const updateProfile = useUpdateShopProfile({
+    mutation: {
+      onSuccess: async (data) => {
+        queryClient.setQueryData(getGetShopProfileQueryKey(), data);
+        toast.success(data.logoDataUrl ? "Invoice logo saved" : "Invoice logo removed");
+      },
+      onError: (error: any) => toast.error(error?.error || "Could not save the invoice logo"),
+    },
+  });
+
+  const handleFile = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.currentTarget.files?.[0];
+    event.currentTarget.value = "";
+    if (!file) return;
+
+    if (!["image/png", "image/jpeg", "image/webp"].includes(file.type)) {
+      toast.error("Choose a PNG, JPEG, or WebP image.");
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error("Choose an image smaller than 10 MB.");
+      return;
+    }
+
+    const objectUrl = URL.createObjectURL(file);
+    try {
+      const image = await new Promise<HTMLImageElement>((resolve, reject) => {
+        const loadedImage = new Image();
+        loadedImage.onload = () => resolve(loadedImage);
+        loadedImage.onerror = () => reject(new Error("This image could not be opened."));
+        loadedImage.src = objectUrl;
+      });
+
+      let logoDataUrl = "";
+      for (const scaleFactor of [1, 0.8, 0.65]) {
+        const scale = Math.min(
+          1,
+          1200 / image.naturalWidth,
+          500 / image.naturalHeight,
+        ) * scaleFactor;
+        const canvas = document.createElement("canvas");
+        canvas.width = Math.max(1, Math.round(image.naturalWidth * scale));
+        canvas.height = Math.max(1, Math.round(image.naturalHeight * scale));
+        const context = canvas.getContext("2d");
+        if (!context) throw new Error("Could not prepare this image.");
+        context.drawImage(image, 0, 0, canvas.width, canvas.height);
+        logoDataUrl = canvas.toDataURL("image/webp", 0.88);
+        if (logoDataUrl.length <= 1_400_000) break;
+      }
+
+      if (logoDataUrl.length > 1_400_000) {
+        throw new Error("This logo is too large. Choose a smaller image.");
+      }
+
+      updateProfile.mutate({ data: { logoDataUrl } });
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Could not read this image.");
+    } finally {
+      URL.revokeObjectURL(objectUrl);
+    }
+  };
+
+  const removeLogo = () => {
+    if (!window.confirm("Remove the logo from future invoice prints?")) return;
+    updateProfile.mutate({ data: { logoDataUrl: null } });
+  };
+
+  return (
+    <div className="space-y-4">
+      <div>
+        <h2 className="text-xl font-black uppercase tracking-tight">Invoice Logo</h2>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Set the logo for this shop. It stays with this installation and appears on printed invoices.
+        </p>
+      </div>
+      <Card>
+        <CardContent className="space-y-5 p-6">
+          <div className="flex min-h-48 items-center justify-center rounded-sm border-2 border-dashed border-border bg-muted/20 p-6">
+            {isLoading ? (
+              <p className="text-sm text-muted-foreground">Loading shop logo…</p>
+            ) : profile?.logoDataUrl ? (
+              <img
+                src={profile.logoDataUrl}
+                alt="Current shop invoice logo"
+                className="max-h-40 max-w-full object-contain"
+              />
+            ) : (
+              <div className="flex flex-col items-center gap-2 text-center text-muted-foreground">
+                <ImagePlus className="h-8 w-8" />
+                <p className="text-sm font-medium">No shop logo set</p>
+              </div>
+            )}
+          </div>
+          <div className="flex flex-wrap gap-3">
+            <input
+              ref={inputRef}
+              type="file"
+              accept="image/png,image/jpeg,image/webp"
+              className="hidden"
+              onChange={handleFile}
+              aria-label="Choose an invoice logo"
+            />
+            <Button
+              type="button"
+              className="gap-2"
+              onClick={() => inputRef.current?.click()}
+              disabled={isLoading || updateProfile.isPending}
+            >
+              <ImagePlus className="h-4 w-4" />
+              {profile?.logoDataUrl ? "Replace Logo" : "Upload Logo"}
+            </Button>
+            {profile?.logoDataUrl && (
+              <Button
+                type="button"
+                variant="outline"
+                onClick={removeLogo}
+                disabled={updateProfile.isPending}
+              >
+                Remove Logo
+              </Button>
+            )}
+          </div>
+          <p className="text-xs text-muted-foreground">
+            You can upload a shop’s logo yourself before handing over its installation, or the shop can set it here later.
+          </p>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
 
 // ── Simple name-only list manager ─────────────────────────────────────────────
 function NameListSection({
@@ -295,6 +432,7 @@ export default function Settings() {
     { key: "technicians", label: "Technicians", icon: Users },
     { key: "insurance", label: "Insurance", icon: ShieldCheck },
     { key: "suppliers", label: "Suppliers", icon: Truck },
+    { key: "branding", label: "Invoice Logo", icon: ImagePlus },
     { key: "theme", label: "Appearance", icon: Sun },
   ];
 
@@ -304,7 +442,7 @@ export default function Settings() {
         <SettingsIcon className="w-7 h-7 text-primary" />
         <div>
           <h1 className="text-3xl font-black uppercase tracking-tight">Settings</h1>
-          <p className="text-muted-foreground">Manage technicians, insurers, suppliers, and appearance.</p>
+          <p className="text-muted-foreground">Manage shop branding, technicians, insurers, suppliers, and appearance.</p>
         </div>
       </div>
 
@@ -354,6 +492,8 @@ export default function Settings() {
       )}
 
       {tab === "suppliers" && <SuppliersSection />}
+
+      {tab === "branding" && <LogoSection />}
 
       {tab === "theme" && (
         <div className="space-y-6">

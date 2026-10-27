@@ -26,9 +26,7 @@ async function generateInvoiceNumber(roNumber: string): Promise<string> {
     return match ? [Number(match[1])] : [];
   });
 
-  const nextSequence = existingSequenceNumbers.length > 0
-    ? Math.max(...existingSequenceNumbers) + 1
-    : existingInvoices.length + 1;
+  const nextSequence = Math.max(0, ...existingSequenceNumbers) + 1;
 
   return `WP-${normalizedRoNumber}-${nextSequence}`;
 }
