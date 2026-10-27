@@ -9,5 +9,5 @@
 export interface InsuranceUsageReport {
   name: string;
   invoiceCount: number;
-  totalRevenue: string;
+  grossProfit: string;
 }

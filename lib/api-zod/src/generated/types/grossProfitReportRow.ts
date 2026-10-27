@@ -6,9 +6,9 @@
  * OpenAPI spec version: 0.1.0
  */
 
-export interface RevenueReportRow {
+export interface GrossProfitReportRow {
   period: string;
   label: string;
   invoiceCount: number;
-  totalRevenue: string;
+  grossProfit: string;
 }

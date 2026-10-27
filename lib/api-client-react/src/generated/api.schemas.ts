@@ -195,20 +195,20 @@ export interface DashboardStats {
 export interface TechnicianUsageReport {
   name: string;
   invoiceCount: number;
-  totalRevenue: string;
+  grossProfit: string;
 }
 
-export interface RevenueReportRow {
+export interface GrossProfitReportRow {
   period: string;
   label: string;
   invoiceCount: number;
-  totalRevenue: string;
+  grossProfit: string;
 }
 
 export interface InsuranceUsageReport {
   name: string;
   invoiceCount: number;
-  totalRevenue: string;
+  grossProfit: string;
 }
 
 export interface ClipUsageReport {
@@ -216,15 +216,16 @@ export interface ClipUsageReport {
   description: string;
   quantity: number;
   invoiceCount: number;
-  totalRevenue: string;
+  grossProfit: string;
 }
 
 export interface Reports {
   totalInvoices: number;
-  totalRevenue: string;
+  totalGrossProfit: string;
+  estimatedCostItemCount: number;
   technicianUsage: TechnicianUsageReport[];
-  monthlyRevenue: RevenueReportRow[];
-  yearlyRevenue: RevenueReportRow[];
+  monthlyGrossProfit: GrossProfitReportRow[];
+  yearlyGrossProfit: GrossProfitReportRow[];
   insuranceUsage: InsuranceUsageReport[];
   clipUsage: ClipUsageReport[];
 }

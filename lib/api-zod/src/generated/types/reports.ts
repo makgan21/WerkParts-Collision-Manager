@@ -6,16 +6,17 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { ClipUsageReport } from './clipUsageReport';
+import type { GrossProfitReportRow } from './grossProfitReportRow';
 import type { InsuranceUsageReport } from './insuranceUsageReport';
-import type { RevenueReportRow } from './revenueReportRow';
 import type { TechnicianUsageReport } from './technicianUsageReport';
 
 export interface Reports {
   totalInvoices: number;
-  totalRevenue: string;
+  totalGrossProfit: string;
+  estimatedCostItemCount: number;
   technicianUsage: TechnicianUsageReport[];
-  monthlyRevenue: RevenueReportRow[];
-  yearlyRevenue: RevenueReportRow[];
+  monthlyGrossProfit: GrossProfitReportRow[];
+  yearlyGrossProfit: GrossProfitReportRow[];
   insuranceUsage: InsuranceUsageReport[];
   clipUsage: ClipUsageReport[];
 }

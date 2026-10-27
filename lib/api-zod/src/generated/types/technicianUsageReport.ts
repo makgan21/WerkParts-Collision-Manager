@@ -9,5 +9,5 @@
 export interface TechnicianUsageReport {
   name: string;
   invoiceCount: number;
-  totalRevenue: string;
+  grossProfit: string;
 }

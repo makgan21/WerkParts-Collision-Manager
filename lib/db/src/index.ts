@@ -55,6 +55,8 @@ const schemaSql = `
     quantity INTEGER NOT NULL DEFAULT 1,
     unit_price TEXT NOT NULL,
     total_price TEXT NOT NULL,
+    unit_cost TEXT,
+    unit_cost_is_estimated INTEGER NOT NULL DEFAULT 0,
     created_at INTEGER NOT NULL DEFAULT (CAST(strftime('%s', 'now') AS INTEGER) * 1000)
   );
 
@@ -94,6 +96,111 @@ export function createDatabase(databasePath: string) {
 
   const client = new DatabaseSync(databasePath);
   client.exec(schemaSql);
+
+  const invoiceItemColumns = client
+    .prepare("PRAGMA table_info(invoice_items)")
+    .all() as Array<{ name: string }>;
+  if (!invoiceItemColumns.some((column) => column.name === "unit_cost")) {
+    client.exec("ALTER TABLE invoice_items ADD COLUMN unit_cost TEXT");
+  }
+  if (
+    !invoiceItemColumns.some(
+      (column) => column.name === "unit_cost_is_estimated",
+    )
+  ) {
+    client.exec(
+      "ALTER TABLE invoice_items ADD COLUMN unit_cost_is_estimated INTEGER NOT NULL DEFAULT 0",
+    );
+  }
+
+  const uncostedItems = client
+    .prepare(
+      `SELECT id, part_id, part_number, unit_price
+       FROM invoice_items
+       WHERE unit_cost IS NULL`,
+    )
+    .all() as Array<{
+    id: number;
+    part_id: number | null;
+    part_number: string;
+    unit_price: string;
+  }>;
+
+  if (uncostedItems.length > 0) {
+    const parts = client
+      .prepare("SELECT id, part_number, price_each FROM parts ORDER BY id")
+      .all() as Array<{
+      id: number;
+      part_number: string;
+      price_each: string | null;
+    }>;
+    const crossReferences = client
+      .prepare(
+        `SELECT reference_number, part_id
+         FROM cross_references
+         ORDER BY id`,
+      )
+      .all() as Array<{ reference_number: string; part_id: number }>;
+    const partsById = new Map(parts.map((part) => [part.id, part]));
+    const partsByNumber = new Map<string, (typeof parts)[number]>();
+    for (const part of parts) {
+      const key = part.part_number.trim().toLowerCase();
+      if (key && !partsByNumber.has(key)) partsByNumber.set(key, part);
+    }
+    const partIdByCrossReference = new Map<string, number>();
+    for (const reference of crossReferences) {
+      const key = reference.reference_number.trim().toLowerCase();
+      if (key && !partIdByCrossReference.has(key)) {
+        partIdByCrossReference.set(key, reference.part_id);
+      }
+    }
+    const getValidCost = (part?: (typeof parts)[number]) => {
+      const value = part?.price_each;
+      if (value == null || value.trim() === "") return null;
+      const parsed = Number(value);
+      return Number.isFinite(parsed) && parsed >= 0 ? value : null;
+    };
+    const updateCost = client.prepare(
+      `UPDATE invoice_items
+       SET unit_cost = ?, unit_cost_is_estimated = ?
+       WHERE id = ?`,
+    );
+
+    client.exec("BEGIN IMMEDIATE");
+    try {
+      for (const item of uncostedItems) {
+        const key = item.part_number.trim().toLowerCase();
+        const directPart =
+          (item.part_id == null ? undefined : partsById.get(item.part_id)) ??
+          partsByNumber.get(key);
+        let unitCost = getValidCost(directPart);
+        if (unitCost == null) {
+          const crossReferencePartId = partIdByCrossReference.get(key);
+          unitCost = getValidCost(
+            crossReferencePartId == null
+              ? undefined
+              : partsById.get(crossReferencePartId),
+          );
+        }
+
+        const estimated = unitCost == null;
+        if (estimated) {
+          const salePrice = Number(item.unit_price);
+          if (!Number.isFinite(salePrice) || salePrice < 0) {
+            throw new Error(
+              `Cannot estimate cost for invoice item ${item.id}: invalid unit price.`,
+            );
+          }
+          unitCost = (salePrice * 0.6).toFixed(4);
+        }
+        updateCost.run(unitCost, estimated ? 1 : 0, item.id);
+      }
+      client.exec("COMMIT");
+    } catch (error) {
+      client.exec("ROLLBACK");
+      throw error;
+    }
+  }
 
   const db = drizzle(
     async (query, params, method) => {

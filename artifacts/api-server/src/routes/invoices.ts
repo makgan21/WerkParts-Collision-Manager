@@ -1,6 +1,12 @@
 import { Router, type IRouter } from "express";
-import { eq, desc } from "drizzle-orm";
-import { db, invoicesTable, invoiceItemsTable } from "@workspace/db";
+import { asc, eq, desc, sql } from "drizzle-orm";
+import {
+  db,
+  invoicesTable,
+  invoiceItemsTable,
+  partsTable,
+  crossReferencesTable,
+} from "@workspace/db";
 import {
   CreateInvoiceBody,
   UpdateInvoiceBody,
@@ -11,6 +17,97 @@ import {
 } from "@workspace/api-zod";
 
 const router: IRouter = Router();
+
+function parseUnitCost(value: string | null | undefined): string | null {
+  if (value == null || value.trim() === "") return null;
+  const parsed = Number(value);
+  return Number.isFinite(parsed) && parsed >= 0 ? value : null;
+}
+
+async function findCatalogUnitCost(item: {
+  partId?: number | null;
+  partNumber: string;
+}): Promise<string | null> {
+  if (item.partId != null) {
+    const [part] = await db
+      .select({ priceEach: partsTable.priceEach })
+      .from(partsTable)
+      .where(eq(partsTable.id, item.partId))
+      .limit(1);
+    const cost = parseUnitCost(part?.priceEach);
+    if (cost != null) return cost;
+  }
+
+  const normalizedPartNumber = item.partNumber.trim().toLowerCase();
+  if (!normalizedPartNumber) return null;
+
+  const [directMatch] = await db
+    .select({ priceEach: partsTable.priceEach })
+    .from(partsTable)
+    .where(sql`lower(trim(${partsTable.partNumber})) = ${normalizedPartNumber}`)
+    .orderBy(asc(partsTable.id))
+    .limit(1);
+  const directCost = parseUnitCost(directMatch?.priceEach);
+  if (directCost != null) return directCost;
+
+  const [crossReferenceMatch] = await db
+    .select({ priceEach: partsTable.priceEach })
+    .from(crossReferencesTable)
+    .innerJoin(partsTable, eq(crossReferencesTable.partId, partsTable.id))
+    .where(
+      sql`lower(trim(${crossReferencesTable.referenceNumber})) = ${normalizedPartNumber}`,
+    )
+    .orderBy(asc(partsTable.id))
+    .limit(1);
+  return parseUnitCost(crossReferenceMatch?.priceEach);
+}
+
+async function buildInvoiceItemValues(
+  items: Array<{
+    partId?: number | null;
+    partNumber: string;
+    description: string;
+    quantity: number;
+    unitPrice: string;
+  }>,
+  invoiceId: number,
+) {
+  return Promise.all(
+    items.map(async (item) => {
+      const catalogCost = await findCatalogUnitCost(item);
+      const unitPrice = Number(item.unitPrice);
+      if (!Number.isFinite(unitPrice) || unitPrice < 0) {
+        throw new Error(`Invalid unit price for part ${item.partNumber}.`);
+      }
+
+      return {
+        invoiceId,
+        partId: item.partId ?? null,
+        partNumber: item.partNumber,
+        description: item.description,
+        quantity: item.quantity,
+        unitPrice: item.unitPrice,
+        totalPrice: (unitPrice * Number(item.quantity)).toFixed(2),
+        unitCost: catalogCost ?? (unitPrice * 0.6).toFixed(4),
+        unitCostIsEstimated: catalogCost == null,
+      };
+    }),
+  );
+}
+
+function formatInvoiceItem(item: typeof invoiceItemsTable.$inferSelect) {
+  return {
+    id: item.id,
+    invoiceId: item.invoiceId,
+    partId: item.partId,
+    partNumber: item.partNumber,
+    description: item.description,
+    quantity: item.quantity,
+    unitPrice: item.unitPrice?.toString() ?? "0",
+    totalPrice: item.totalPrice?.toString() ?? "0",
+    createdAt: item.createdAt.toISOString(),
+  };
+}
 
 async function generateInvoiceNumber(roNumber: string): Promise<string> {
   const normalizedRoNumber = roNumber.trim();
@@ -125,30 +222,14 @@ router.post("/invoices", async (req, res): Promise<void> => {
   if (items.length > 0) {
     insertedItems = await db
       .insert(invoiceItemsTable)
-      .values(
-        items.map((item) => ({
-          invoiceId: invoice.id,
-          partId: item.partId ?? null,
-          partNumber: item.partNumber,
-          description: item.description,
-          quantity: item.quantity,
-          unitPrice: item.unitPrice,
-          totalPrice: (Number(item.unitPrice) * Number(item.quantity)).toFixed(2),
-        })),
-      )
+      .values(await buildInvoiceItemValues(items, invoice.id))
       .returning();
-
   }
 
   res.status(201).json({
     ...formatInvoice(invoice, insertedItems.length),
     notes: invoice.notes,
-    items: insertedItems.map((i) => ({
-      ...i,
-      unitPrice: i.unitPrice?.toString() ?? "0",
-      totalPrice: i.totalPrice?.toString() ?? "0",
-      createdAt: i.createdAt.toISOString(),
-    })),
+    items: insertedItems.map(formatInvoiceItem),
   });
 });
 
@@ -178,12 +259,7 @@ router.get("/invoices/:id", async (req, res): Promise<void> => {
   res.json({
     ...formatInvoice(invoice, items.length),
     notes: invoice.notes,
-    items: items.map((i) => ({
-      ...i,
-      unitPrice: i.unitPrice?.toString() ?? "0",
-      totalPrice: i.totalPrice?.toString() ?? "0",
-      createdAt: i.createdAt.toISOString(),
-    })),
+    items: items.map(formatInvoiceItem),
   });
 });
 
@@ -244,17 +320,9 @@ router.put("/invoices/:id", async (req, res): Promise<void> => {
     await db.delete(invoiceItemsTable).where(eq(invoiceItemsTable.invoiceId, params.data.id));
 
     if (items.length > 0) {
-      await db.insert(invoiceItemsTable).values(
-        items.map((item) => ({
-          invoiceId: params.data.id,
-          partId: item.partId ?? null,
-          partNumber: item.partNumber,
-          description: item.description,
-          quantity: item.quantity,
-          unitPrice: item.unitPrice,
-          totalPrice: (Number(item.unitPrice) * Number(item.quantity)).toFixed(2),
-        })),
-      );
+      await db
+        .insert(invoiceItemsTable)
+        .values(await buildInvoiceItemValues(items, params.data.id));
     }
   }
 
@@ -278,12 +346,7 @@ router.put("/invoices/:id", async (req, res): Promise<void> => {
   res.json({
     ...formatInvoice(invoice, updatedItems.length),
     notes: invoice.notes,
-    items: updatedItems.map((i) => ({
-      ...i,
-      unitPrice: i.unitPrice?.toString() ?? "0",
-      totalPrice: i.totalPrice?.toString() ?? "0",
-      createdAt: i.createdAt.toISOString(),
-    })),
+    items: updatedItems.map(formatInvoiceItem),
   });
 });
 

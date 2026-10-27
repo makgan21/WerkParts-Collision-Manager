@@ -14,6 +14,10 @@ export const invoiceItemsTable = sqliteTable("invoice_items", {
   quantity: integer("quantity").notNull().default(1),
   unitPrice: text("unit_price").notNull(),
   totalPrice: text("total_price").notNull(),
+  unitCost: text("unit_cost"),
+  unitCostIsEstimated: integer("unit_cost_is_estimated", { mode: "boolean" })
+    .notNull()
+    .default(false),
   createdAt: integer("created_at", { mode: "timestamp_ms" })
     .notNull()
     .default(sql`(CAST(strftime('%s', 'now') AS INTEGER) * 1000)`),

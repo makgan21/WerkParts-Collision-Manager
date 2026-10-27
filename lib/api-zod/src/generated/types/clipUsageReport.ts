@@ -11,5 +11,5 @@ export interface ClipUsageReport {
   description: string;
   quantity: number;
   invoiceCount: number;
-  totalRevenue: string;
+  grossProfit: string;
 }

@@ -2,22 +2,22 @@ export const REPORT_DEFINITIONS = [
   {
     id: "technician-usage",
     title: "Technician Usage",
-    description: "Invoices, revenue, and average invoice value by technician.",
+    description: "Invoices, gross profit, and average gross profit by technician.",
   },
   {
     id: "monthly-revenue",
-    title: "Monthly Revenue",
-    description: "Revenue and invoice volume grouped by month.",
+    title: "Monthly Gross Profit",
+    description: "Gross profit and invoice volume grouped by month.",
   },
   {
     id: "yearly-revenue",
-    title: "Yearly Revenue",
-    description: "Year-over-year revenue and invoice totals.",
+    title: "Yearly Gross Profit",
+    description: "Year-over-year gross profit and invoice totals.",
   },
   {
     id: "insurance-usage",
     title: "Insurance Company Usage",
-    description: "Invoice volume and revenue by insurance company.",
+    description: "Invoice volume and gross profit by insurance company.",
   },
   {
     id: "clip-usage",

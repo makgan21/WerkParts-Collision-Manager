@@ -979,18 +979,18 @@ components:
 
     TechnicianUsageReport:
       type: object
-      required: [name, invoiceCount, totalRevenue]
+      required: [name, invoiceCount, grossProfit]
       properties:
         name:
           type: string
         invoiceCount:
           type: number
-        totalRevenue:
+        grossProfit:
           type: string
 
-    RevenueReportRow:
+    GrossProfitReportRow:
       type: object
-      required: [period, label, invoiceCount, totalRevenue]
+      required: [period, label, invoiceCount, grossProfit]
       properties:
         period:
           type: string
@@ -998,23 +998,23 @@ components:
           type: string
         invoiceCount:
           type: number
-        totalRevenue:
+        grossProfit:
           type: string
 
     InsuranceUsageReport:
       type: object
-      required: [name, invoiceCount, totalRevenue]
+      required: [name, invoiceCount, grossProfit]
       properties:
         name:
           type: string
         invoiceCount:
           type: number
-        totalRevenue:
+        grossProfit:
           type: string
 
     ClipUsageReport:
       type: object
-      required: [partNumber, description, quantity, invoiceCount, totalRevenue]
+      required: [partNumber, description, quantity, invoiceCount, grossProfit]
       properties:
         partNumber:
           type: string
@@ -1024,29 +1024,31 @@ components:
           type: number
         invoiceCount:
           type: number
-        totalRevenue:
+        grossProfit:
           type: string
 
     Reports:
       type: object
-      required: [totalInvoices, totalRevenue, technicianUsage, monthlyRevenue, yearlyRevenue, insuranceUsage, clipUsage]
+      required: [totalInvoices, totalGrossProfit, estimatedCostItemCount, technicianUsage, monthlyGrossProfit, yearlyGrossProfit, insuranceUsage, clipUsage]
       properties:
         totalInvoices:
           type: number
-        totalRevenue:
+        totalGrossProfit:
           type: string
+        estimatedCostItemCount:
+          type: number
         technicianUsage:
           type: array
           items:
             $ref: "#/components/schemas/TechnicianUsageReport"
-        monthlyRevenue:
+        monthlyGrossProfit:
           type: array
           items:
-            $ref: "#/components/schemas/RevenueReportRow"
-        yearlyRevenue:
+            $ref: "#/components/schemas/GrossProfitReportRow"
+        yearlyGrossProfit:
           type: array
           items:
-            $ref: "#/components/schemas/RevenueReportRow"
+            $ref: "#/components/schemas/GrossProfitReportRow"
         insuranceUsage:
           type: array
           items:

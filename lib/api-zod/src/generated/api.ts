@@ -638,35 +638,36 @@ export const GetDashboardResponse = zod.object({
  */
 export const GetReportsResponse = zod.object({
   "totalInvoices": zod.number(),
-  "totalRevenue": zod.string(),
+  "totalGrossProfit": zod.string(),
+  "estimatedCostItemCount": zod.number(),
   "technicianUsage": zod.array(zod.object({
   "name": zod.string(),
   "invoiceCount": zod.number(),
-  "totalRevenue": zod.string()
+  "grossProfit": zod.string()
 })),
-  "monthlyRevenue": zod.array(zod.object({
+  "monthlyGrossProfit": zod.array(zod.object({
   "period": zod.string(),
   "label": zod.string(),
   "invoiceCount": zod.number(),
-  "totalRevenue": zod.string()
+  "grossProfit": zod.string()
 })),
-  "yearlyRevenue": zod.array(zod.object({
+  "yearlyGrossProfit": zod.array(zod.object({
   "period": zod.string(),
   "label": zod.string(),
   "invoiceCount": zod.number(),
-  "totalRevenue": zod.string()
+  "grossProfit": zod.string()
 })),
   "insuranceUsage": zod.array(zod.object({
   "name": zod.string(),
   "invoiceCount": zod.number(),
-  "totalRevenue": zod.string()
+  "grossProfit": zod.string()
 })),
   "clipUsage": zod.array(zod.object({
   "partNumber": zod.string(),
   "description": zod.string(),
   "quantity": zod.number(),
   "invoiceCount": zod.number(),
-  "totalRevenue": zod.string()
+  "grossProfit": zod.string()
 }))
 })
 

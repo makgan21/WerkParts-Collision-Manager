@@ -60,11 +60,18 @@ export default function Reports() {
         </Card>
         <Card>
           <CardContent className="pt-6">
-            <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Total Revenue</p>
-            <p className="text-4xl font-black font-mono mt-1">{formatCurrency(reports.totalRevenue)}</p>
+            <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Total Gross Profit</p>
+            <p className="text-4xl font-black font-mono mt-1">{formatCurrency(reports.totalGrossProfit)}</p>
           </CardContent>
         </Card>
       </div>
+
+      {reports.estimatedCostItemCount > 0 && (
+        <p role="note" className="rounded-md border border-amber-500/40 bg-amber-500/10 p-4 text-sm">
+          Cost is estimated at 60% of sale price for {reports.estimatedCostItemCount} historical line items
+          that have no matching catalog cost.
+        </p>
+      )}
 
       <section aria-labelledby="report-menu-heading">
         <div className="flex items-end justify-between gap-4 mb-4">
