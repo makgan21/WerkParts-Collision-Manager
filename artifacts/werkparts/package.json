@@ -103,6 +103,7 @@
       }
     ],
     "win": {
+      "icon": "desktop/hardware-pit.ico",
       "target": [
         "nsis"
       ]

@@ -68,6 +68,7 @@ if (!hasSingleInstanceLock) {
 
       mainWindow = new BrowserWindow({
         title: "Hardware Pit",
+        icon: path.join(app.getAppPath(), "dist", "public", "hardware-pit-icon.png"),
         width: 1440,
         height: 960,
         minWidth: 980,

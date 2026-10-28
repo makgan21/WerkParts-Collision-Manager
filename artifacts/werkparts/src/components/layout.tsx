@@ -1,5 +1,6 @@
 import { Link, useLocation } from "wouter";
 import { LayoutDashboard, FileText, Wrench, Settings, BarChart2 } from "lucide-react";
+import hardwarePitLogo from "@/assets/hardware-pit-logo.jpg";
 
 export function Layout({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
@@ -19,11 +20,12 @@ export function Layout({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-[100dvh] flex bg-background">
       <aside className="w-64 bg-sidebar text-sidebar-foreground flex-shrink-0 no-print flex flex-col border-r border-sidebar-border">
-        <div className="h-16 flex items-center px-6 border-b border-sidebar-border/50">
-          <div className="flex items-center gap-2 font-black text-xl tracking-tight uppercase">
-            <Wrench className="w-5 h-5 text-primary" />
-            <span>Hardware Pit</span>
-          </div>
+        <div className="h-16 flex items-center px-6 border-b border-sidebar-border/50 bg-[#171d29]">
+          <img
+            src={hardwarePitLogo}
+            alt="Hardware Pit"
+            className="block h-auto max-h-12 w-full object-contain"
+          />
         </div>
 
         <nav className="flex-1 py-6 px-3 space-y-1">
