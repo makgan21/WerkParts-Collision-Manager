@@ -22,7 +22,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <div className="h-16 flex items-center px-6 border-b border-sidebar-border/50">
           <div className="flex items-center gap-2 font-black text-xl tracking-tight uppercase">
             <Wrench className="w-5 h-5 text-primary" />
-            <span>WerkParts</span>
+            <span>Hardware Pit</span>
           </div>
         </div>
 

@@ -1,6 +1,7 @@
 {
   "name": "@workspace/werkparts",
   "version": "0.0.0",
+  "description": "Hardware Pit helps collision repair shops manage fastener parts and invoices.",
   "private": true,
   "type": "module",
   "main": "dist-desktop/main.cjs",
@@ -86,7 +87,7 @@
   },
   "build": {
     "appId": "com.werkheiser.werkparts",
-    "productName": "WerkParts",
+    "productName": "Hardware Pit",
     "asar": true,
     "directories": {
       "output": "release"

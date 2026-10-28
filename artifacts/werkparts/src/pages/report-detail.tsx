@@ -189,7 +189,7 @@ export default function ReportDetail() {
       </div>
 
       <header className="border-b-2 border-primary pb-5">
-        <p className="text-xs font-black uppercase tracking-[0.2em] text-primary">WerkParts Report</p>
+        <p className="text-xs font-black uppercase tracking-[0.2em] text-primary">Hardware Pit Report</p>
         <h1 className="mt-2 text-3xl font-black uppercase tracking-tight">{report.title}</h1>
         <p className="mt-2 text-muted-foreground">{report.description}</p>
       </header>

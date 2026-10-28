@@ -67,6 +67,7 @@ if (!hasSingleInstanceLock) {
       const appUrl = `http://127.0.0.1:${address.port}`;
 
       mainWindow = new BrowserWindow({
+        title: "Hardware Pit",
         width: 1440,
         height: 960,
         minWidth: 980,
@@ -90,7 +91,7 @@ if (!hasSingleInstanceLock) {
       await mainWindow.loadURL(appUrl);
     } catch (error) {
       const message = error instanceof Error ? error.message : "Unknown startup error";
-      dialog.showErrorBox("WerkParts could not start", message);
+      dialog.showErrorBox("Hardware Pit could not start", message);
       app.quit();
     }
   });

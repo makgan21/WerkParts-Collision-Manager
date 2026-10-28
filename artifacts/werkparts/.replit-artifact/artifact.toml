@@ -1,6 +1,6 @@
 kind = "web"
 previewPath = "/"
-title = "WerkParts - Collision Fastener Manager"
+title = "Hardware Pit - Collision Fastener Manager"
 version = "1.0.0"
 id = "artifacts/werkparts"
 router = "path"

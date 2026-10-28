@@ -1,6 +1,6 @@
-# WerkParts - Collision Fastener Manager
+# Hardware Pit - Collision Fastener Manager
 
-A web app for collision repair shops to invoice fasteners (clips, retainers, nuts, bolts) from on-hand stock and bill customers or insurance companies.
+Hardware Pit is a fastener-invoicing and parts-management app for collision repair shops.
 
 ## Run & Operate
 
@@ -50,7 +50,7 @@ A web app for collision repair shops to invoice fasteners (clips, retainers, nut
 - **Invoices** — create, view, edit, delete invoices; each invoice has RO number, date, tech, vehicle info, insurance company, and line items with part number, qty, unit price, total; prints cleanly with "OEM Authorized Price" label
 - **Parts Catalog** — manage on-hand fastener inventory (clips, retainers, nuts, bolts) with part numbers, pricing, and stock quantities
 - **Suppliers** — manage fastener supplier contact information
-- **Reports** — technician usage, monthly and yearly revenue, insurance usage, and most-used clips, with printable detail views
+- **Reports** — technician usage, monthly and yearly gross profit, insurance usage, and most-used clips, with printable detail views
 - **Invoice Logo** — set, replace, or remove a logo for the local shop's printed invoices
 
 ## User preferences

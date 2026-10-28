@@ -1,5 +1,5 @@
 ---
-name: WerkParts stack & gotchas
+name: Hardware Pit stack & gotchas
 description: Key constraints and decisions for the WerkParts collision fastener manager app
 ---
 
