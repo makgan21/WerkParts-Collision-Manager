@@ -8,4 +8,5 @@
 **/.data/
 artifacts/werkparts/dist-desktop/
 artifacts/werkparts/release/
+/generated-artifacts/
 .local/werkparts-migration/

@@ -34,6 +34,7 @@ node_modules
 /artifacts/api-server/.data/
 /artifacts/werkparts/dist-desktop/
 /artifacts/werkparts/release/
+/generated-artifacts/
 .local/werkparts-migration/
 /libpeerconnection.log
 npm-debug.log

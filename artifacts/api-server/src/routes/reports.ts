@@ -159,7 +159,9 @@ router.get("/reports", async (_req, res): Promise<void> => {
     if (!Number.isFinite(sales)) {
       throw new Error(`Cannot calculate gross profit for invoice ${invoice.id}.`);
     }
-    const grossProfit = sales - (costByInvoice.get(invoice.id) ?? 0);
+    const grossProfit = Number(
+      (sales - (costByInvoice.get(invoice.id) ?? 0)).toFixed(2),
+    );
     grossProfitByInvoice.set(invoice.id, grossProfit);
 
     addUsage(technicianUsage, invoice.techName || "Unknown", grossProfit);
@@ -229,7 +231,9 @@ router.get("/reports", async (_req, res): Promise<void> => {
 
     const itemCost = resolvedCosts.get(item.id)!;
     const sales = Number(item.totalPrice ?? 0);
-    const grossProfit = sales - itemCost.unitCost * Number(item.quantity);
+    const grossProfit = Number(
+      (sales - itemCost.unitCost * Number(item.quantity)).toFixed(2),
+    );
     existing.quantity += Number(item.quantity ?? 0);
     existing.invoiceIds.add(item.invoiceId);
     existing.grossProfit += grossProfit;

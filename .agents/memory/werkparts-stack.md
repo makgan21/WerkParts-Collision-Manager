@@ -38,6 +38,14 @@ Fixed to `top-[5%]` with no translate-y, plus `max-h-[90vh] overflow-y-auto` for
 - Added `msrpPrice` and `ourCost` fields (nullable numeric)
 - CSV import: client-side parse, POST each row; headers: Part Number, Description, Category, Unit Price, MSRP Price, Our Cost
 
+## Gross profit cost rule
+- `parts.priceEach` is the shop's unit cost; customer pricing targets a 40% gross margin.
+- For historical line items without a matched catalog cost, estimate unit cost at 60% of sale price and mark it as estimated.
+
+**Why:** The user chose a 40% margin estimate so reports reflect profit rather than invoice sales.
+
+**How to apply:** Keep a cost snapshot with each invoice item; prefer that snapshot for history and visibly identify estimated costs in reports.
+
 ## Technicians / Insurance Companies
 - Tables: `technicians`, `insurance_companies` in DB
 - Routes in `artifacts/api-server/src/routes/settings.ts`

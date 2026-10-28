@@ -149,6 +149,52 @@ const normalizedInvoices = [...data.invoices]
       invoiceNumber: `WP-${roNumber}-${sequence}`,
     };
   });
+const normalizePartNumber = (value: string) => value.trim().toLowerCase();
+const partsById = new Map(data.parts.map((part) => [part.id, part]));
+const partsByNumber = new Map<string, ExportedPart>();
+for (const part of data.parts) {
+  const key = normalizePartNumber(part.partNumber);
+  if (key && !partsByNumber.has(key)) partsByNumber.set(key, part);
+}
+const partIdByCrossReference = new Map<string, number>();
+for (const reference of data.crossReferences) {
+  const key = normalizePartNumber(reference.referenceNumber);
+  if (key && !partIdByCrossReference.has(key)) {
+    partIdByCrossReference.set(key, reference.partId);
+  }
+}
+
+function getCatalogUnitCost(part?: ExportedPart): string | null {
+  const value = part?.priceEach;
+  if (value == null || value.trim() === "") return null;
+  const parsed = Number(value);
+  return Number.isFinite(parsed) && parsed >= 0 ? value : null;
+}
+
+function getInvoiceItemCost(item: ExportedInvoiceItem) {
+  const partNumber = normalizePartNumber(item.partNumber);
+  const directPart =
+    (item.partId == null ? undefined : partsById.get(item.partId)) ??
+    partsByNumber.get(partNumber);
+  const directCost = getCatalogUnitCost(directPart);
+  if (directCost != null) return { unitCost: directCost, estimated: false };
+
+  const crossReferencePartId = partIdByCrossReference.get(partNumber);
+  const crossReferenceCost = getCatalogUnitCost(
+    crossReferencePartId == null
+      ? undefined
+      : partsById.get(crossReferencePartId),
+  );
+  if (crossReferenceCost != null) {
+    return { unitCost: crossReferenceCost, estimated: false };
+  }
+
+  const salePrice = Number(item.unitPrice);
+  if (!Number.isFinite(salePrice) || salePrice < 0) {
+    throw new Error(`Cannot estimate cost for invoice item ${item.id}.`);
+  }
+  return { unitCost: (salePrice * 0.6).toFixed(4), estimated: true };
+}
 
 async function assertEmpty(database: typeof db, label: string) {
   const checks = await Promise.all([
@@ -207,10 +253,15 @@ try {
     "werkheiser-logo.png",
   );
   const privateLogoDataUrl = `data:image/png;base64,${readFileSync(originalLogoPath).toString("base64")}`;
-  const invoiceItems = data.invoiceItems.map((item) => ({
-    ...item,
-    createdAt: asDate(item.createdAt),
-  }));
+  const invoiceItems = data.invoiceItems.map((item) => {
+    const cost = getInvoiceItemCost(item);
+    return {
+      ...item,
+      unitCost: cost.unitCost,
+      unitCostIsEstimated: cost.estimated,
+      createdAt: asDate(item.createdAt),
+    };
+  });
 
   sqliteClient.exec("BEGIN IMMEDIATE");
   try {
@@ -320,6 +371,11 @@ try {
     ...reference,
     createdAt: asDate(reference.createdAt),
   }));
+  const catalogInsuranceCompanies = data.insuranceCompanies.map((company) => ({
+    id: company.id,
+    name: company.name,
+    createdAt: asDate(company.createdAt),
+  }));
 
   catalogDatabase.client.exec("BEGIN IMMEDIATE");
   try {
@@ -329,6 +385,11 @@ try {
       catalogDatabase.db,
       crossReferencesTable,
       catalogCrossReferences,
+    );
+    await insertInBatches(
+      catalogDatabase.db,
+      insuranceCompaniesTable,
+      catalogInsuranceCompanies,
     );
     catalogDatabase.client.exec("COMMIT");
   } catch (error) {
@@ -377,7 +438,7 @@ try {
     stats.installerInvoices !== 0
     || stats.installerInvoiceItems !== 0
     || stats.installerTechnicians !== 0
-    || stats.installerInsurers !== 0
+    || stats.installerInsurers !== data.insuranceCompanies.length
     || stats.installerShopProfiles !== 0
   ) {
     throw new Error("SQLite import verification failed; inspect the database before using it.");

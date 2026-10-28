@@ -25,8 +25,8 @@ function TechnicianUsageTable({ reports }: { reports: Reports }) {
         <TableRow>
           <TableHead>Technician</TableHead>
           <TableHead className="text-right">Invoices</TableHead>
-          <TableHead className="text-right">Total Revenue</TableHead>
-          <TableHead className="text-right">Avg per Invoice</TableHead>
+          <TableHead className="text-right">Gross Profit</TableHead>
+          <TableHead className="text-right">Avg Profit per Invoice</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -34,9 +34,9 @@ function TechnicianUsageTable({ reports }: { reports: Reports }) {
           <TableRow key={row.name}>
             <TableCell className="font-bold">{row.name}</TableCell>
             <TableCell className="text-right font-mono">{row.invoiceCount}</TableCell>
-            <TableCell className="text-right font-mono font-bold">{formatCurrency(row.totalRevenue)}</TableCell>
+            <TableCell className="text-right font-mono font-bold">{formatCurrency(row.grossProfit)}</TableCell>
             <TableCell className="text-right font-mono">
-              {formatCurrency(row.invoiceCount ? Number(row.totalRevenue) / row.invoiceCount : 0)}
+              {formatCurrency(row.invoiceCount ? Number(row.grossProfit) / row.invoiceCount : 0)}
             </TableCell>
           </TableRow>
         ))}
@@ -49,7 +49,7 @@ function RevenueTable({
   rows,
   emptyLabel,
 }: {
-  rows: Reports["monthlyRevenue"];
+  rows: Reports["monthlyGrossProfit"];
   emptyLabel: string;
 }) {
   return (
@@ -58,7 +58,7 @@ function RevenueTable({
         <TableRow>
           <TableHead>{emptyLabel}</TableHead>
           <TableHead className="text-right">Invoices</TableHead>
-          <TableHead className="text-right">Revenue</TableHead>
+          <TableHead className="text-right">Gross Profit</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -66,7 +66,7 @@ function RevenueTable({
           <TableRow key={row.period}>
             <TableCell className="font-bold">{row.label}</TableCell>
             <TableCell className="text-right font-mono">{row.invoiceCount}</TableCell>
-            <TableCell className="text-right font-mono font-bold">{formatCurrency(row.totalRevenue)}</TableCell>
+            <TableCell className="text-right font-mono font-bold">{formatCurrency(row.grossProfit)}</TableCell>
           </TableRow>
         ))}
       </TableBody>
@@ -81,8 +81,8 @@ function InsuranceUsageTable({ reports }: { reports: Reports }) {
         <TableRow>
           <TableHead>Insurance Company</TableHead>
           <TableHead className="text-right">Invoices</TableHead>
-          <TableHead className="text-right">Total Revenue</TableHead>
-          <TableHead className="text-right">Avg per Invoice</TableHead>
+          <TableHead className="text-right">Gross Profit</TableHead>
+          <TableHead className="text-right">Avg Profit per Invoice</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -90,9 +90,9 @@ function InsuranceUsageTable({ reports }: { reports: Reports }) {
           <TableRow key={row.name}>
             <TableCell className="font-bold">{row.name}</TableCell>
             <TableCell className="text-right font-mono">{row.invoiceCount}</TableCell>
-            <TableCell className="text-right font-mono font-bold">{formatCurrency(row.totalRevenue)}</TableCell>
+            <TableCell className="text-right font-mono font-bold">{formatCurrency(row.grossProfit)}</TableCell>
             <TableCell className="text-right font-mono">
-              {formatCurrency(row.invoiceCount ? Number(row.totalRevenue) / row.invoiceCount : 0)}
+              {formatCurrency(row.invoiceCount ? Number(row.grossProfit) / row.invoiceCount : 0)}
             </TableCell>
           </TableRow>
         ))}
@@ -111,7 +111,7 @@ function ClipUsageTable({ reports }: { reports: Reports }) {
           <TableHead>Description</TableHead>
           <TableHead className="text-right">Qty Used</TableHead>
           <TableHead className="text-right">Invoices</TableHead>
-          <TableHead className="text-right">Revenue</TableHead>
+          <TableHead className="text-right">Gross Profit</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -122,7 +122,7 @@ function ClipUsageTable({ reports }: { reports: Reports }) {
             <TableCell>{row.description}</TableCell>
             <TableCell className="text-right font-mono font-bold">{row.quantity}</TableCell>
             <TableCell className="text-right font-mono">{row.invoiceCount}</TableCell>
-            <TableCell className="text-right font-mono">{formatCurrency(row.totalRevenue)}</TableCell>
+            <TableCell className="text-right font-mono">{formatCurrency(row.grossProfit)}</TableCell>
           </TableRow>
         ))}
       </TableBody>
@@ -164,9 +164,9 @@ export default function ReportDetail() {
       case "technician-usage":
         return <TechnicianUsageTable reports={reports} />;
       case "monthly-revenue":
-        return <RevenueTable rows={reports.monthlyRevenue} emptyLabel="Month" />;
+        return <RevenueTable rows={reports.monthlyGrossProfit} emptyLabel="Month" />;
       case "yearly-revenue":
-        return <RevenueTable rows={reports.yearlyRevenue} emptyLabel="Year" />;
+        return <RevenueTable rows={reports.yearlyGrossProfit} emptyLabel="Year" />;
       case "insurance-usage":
         return <InsuranceUsageTable reports={reports} />;
       case "clip-usage":
@@ -203,11 +203,18 @@ export default function ReportDetail() {
         </Card>
         <Card className="report-card">
           <CardContent className="pt-5">
-            <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Total Revenue</p>
-            <p className="mt-1 font-mono text-2xl font-black">{formatCurrency(reports.totalRevenue)}</p>
+            <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Total Gross Profit</p>
+            <p className="mt-1 font-mono text-2xl font-black">{formatCurrency(reports.totalGrossProfit)}</p>
           </CardContent>
         </Card>
       </div>
+
+      {reports.estimatedCostItemCount > 0 && (
+        <p role="note" className="rounded-md border border-amber-500/40 bg-amber-500/10 p-4 text-sm">
+          Cost is estimated at 60% of sale price for {reports.estimatedCostItemCount} historical line items
+          that have no matching catalog cost.
+        </p>
+      )}
 
       <Card className="report-card overflow-hidden">
         {renderReport(report.id)}
