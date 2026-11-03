@@ -1,81 +1,81 @@
-# WerkParts Collision Manager
+# Hardware Pit
 
-WerkParts Collision Manager is a Windows-focused collision shop inventory and invoicing application designed specifically for managing automotive fasteners, clips, and small hardware.
+**Fastener and invoice management for collision repair shops.**
 
-Unlike generic inventory software, WerkParts is built around the daily workflow of a collision parts department, making it quick and easy to invoice insurance-approved replacement fasteners while maintaining accurate inventory.
+Hardware Pit is a desktop application designed to help collision repair shops manage fastener parts, maintain a parts catalog, and generate invoices and reports.
 
----
+The application is built with Electron and React, with a local SQLite database for storing application data.
 
 ## Features
 
-- Fast fastener invoicing
-- OEM to Auveco cross-reference lookup
-- Automatic invoice generation
-- Technician tracking
-- Insurance company tracking
-- Local inventory database
-- Inventory reporting (planned)
-- Automatic Auveco catalog import
-- OEM cross-reference database
-- Vehicle application lookup
-- Printable professional invoices
-- Bulk inventory import/export
-- Reporting dashboard
-
----
-
-## Planned Features
-
-- Windows desktop application
-- Local SQLite database
-- Automatic updates
-- Offline operation
-
----
+- **Fastener catalog management** — Maintain a catalog of fastener parts.
+- **Parts lookup** — Find and manage parts used by the shop.
+- **Invoice generation** — Generate invoices for parts and shop transactions.
+- **Reports** — Generate and review reports.
+- **Settings** — Configure application settings.
+- **Spreadsheet support** — Supports XLSX spreadsheet functionality.
+- **Local database** — Uses SQLite for local data storage.
+- **Portable Windows build** — Can be packaged as a portable Windows application.
 
 ## Technology
 
-Current development:
-
-- Replit Agent
+- Electron
 - React
 - TypeScript
-- Node.js
+- Vite
+- SQLite
+- XLSX
 
----
+## Windows Builds
 
-## Target Users
+The project supports two Windows distribution formats.
 
-Collision repair facilities
+### Portable application
 
-Body shop parts departments
+```bash
+pnpm run desktop:portable:win
+```
 
-Independent repair shops
+### Windows installer
 
-Automotive restoration shops
+```bash
+pnpm run desktop:installer:win
+```
 
----
+Build output is generated in the application's `release` directory.
 
-## Project Goals
+## Development
 
-- Faster than FastTrack for fastener invoicing
-- Easy enough for any parts manager to learn
-- Professional Windows application
-- Works without an internet connection
-- Expandable for future shop management features
+Install dependencies using pnpm:
 
----
+```bash
+pnpm install
+```
 
-## Status
+Run the development application:
 
-Currently under active development.
+```bash
+pnpm --filter @workspace/werkparts run dev
+```
 
-This project is being designed around real-world collision shop workflows with future support for inventory management, reporting, and OEM cross-reference automation.
+Build the project:
 
----
+```bash
+pnpm run build
+```
+
+## Database
+
+Hardware Pit uses a local SQLite database.
+
+The application includes catalog seed data in the current development build. Future public distribution plans may change how catalog data is supplied.
+
+## Project Status
+
+Hardware Pit is under active development.
+
+**Current milestone:** v1.0.0 — Portable desktop application.
 
 ## License
 
-Private project.
-
-Copyright © 2026 WerkParts Collision Manager.
+MIT
