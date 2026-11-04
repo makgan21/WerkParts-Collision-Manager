@@ -561,7 +561,7 @@ export default function InvoiceDetail() {
               <img
                 src={shopProfile.logoDataUrl}
                 alt="Shop logo"
-                className="max-h-20 max-w-[300px] object-contain object-left"
+                className="max-h-20 max-w-full object-contain object-left"
               />
             )}
           </div>
