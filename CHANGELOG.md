@@ -2,6 +2,18 @@
 
 All notable changes to **Hardware Pit** are documented here.
 
+## Version 1.0.1 - Few other changes (Planned)
+
+### Added
+
+- Add a markup setting into the settings (defaults to 40%)
+- Lock down the portable app
+
+### Improved
+
+- Change how the customer price is calculated
+- Make reports more interactive with the ability to view all the way down to individual invoices
+
 ## Version 1.0.0 - Hardware Pit Portable Desktop Release
 
 ### Added
